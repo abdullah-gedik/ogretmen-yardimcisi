@@ -308,6 +308,8 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .as-yap,.as-mik{border:0;border-radius:10px;padding:0 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;min-height:48px}
 .as-yap{background:#6a1b9a;color:#fff}.as-yap:disabled{opacity:.6}.as-mik{background:#f3e5f5;color:#6a1b9a}.as-mik.dinliyor{background:#e53935;color:#fff}
 .as-ornek{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.as-ornek button{border:1px solid #e1bee7;background:#faf5fc;color:#4a148c;border-radius:16px;padding:3px 10px;font:inherit;font-size:12px;cursor:pointer}
+.asistan-git{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#6a1b9a;color:#fff;text-decoration:none;border-radius:12px;padding:12px 16px;margin:0 0 12px;font-size:17px}
+.asistan-git span{font-size:13px;opacity:.85;flex:1}.asistan-git:hover{background:#4a148c}
 .as-cevap{margin-top:8px;background:#f3e5f5;border-radius:10px;padding:8px 12px;color:#311b92;white-space:pre-wrap}
 @media(max-width:600px){.as-sat{flex-wrap:wrap}.as-sat textarea{flex:1 1 100%}.as-yap,.as-mik{flex:1}}
 .kn-uc{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
@@ -443,6 +445,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 </nav>
 
 <main><div id="zoomKap">
+<a id="asistanGit" class="asistan-git" href="https://claude.ai/artifact/PmkyTSGh9j52kogYX1KeVn" target="_blank" rel="noopener">🤖 <b>Asistan'a söylemek için tıklayın</b> <span>Asistan yalnız Claude sayfasında çalışır; burası yedek adres.</span> ➜</a>
 <div id="asistan" class="asistan" style="display:none">
   <div class="as-ust"><span class="as-ad">🤖 Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın.</span></div>
   <div class="as-sat"><textarea id="asGiris" rows="2" placeholder="Ör. Sabır konusu için boyama sayfası hazırla · Be harfinin 3 görevli sayfasını aç · Başlığı büyüt"></textarea>
@@ -853,7 +856,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v2.9";
+var SURUM = "v3.0";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -985,7 +988,7 @@ var CL_INDIR = null;
 function claudeOrtamAyarla() { // Claude sayfasında çalışmayan şeyleri gizle, indirmeyi bağla
   if (claudeOrtamAyarla.oldu) return; claudeOrtamAyarla.oldu = true;
   window.claude.use("downloads").then(function (d) { CL_INDIR = d; });
-  var st = document.createElement("style"); st.textContent = "#btnDrive,#atWebKap{display:none!important}"; document.head.appendChild(st);
+  var st = document.createElement("style"); st.textContent = "#btnDrive,#atWebKap,#asistanGit{display:none!important}"; document.head.appendChild(st);
 }
 if (CLAUDE_ORTAM) claudeOrtamAyarla();
 function indir(blob, ad) {
@@ -4972,6 +4975,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.0", "GitHub adresinde en üste mor '🤖 Asistan'a söylemek için tıklayın' düğmesi eklendi; Asistan'ın çalıştığı Claude sayfasını açar."],
   ["v2.9", "Asistan'a SERBEST EL: hazır düğmesi olmayan işleri de programın içinde kendisi kod yazarak yapar (özel düzenler, toplu değişiklikler, plana ya da veli notuna yazı, birden çok sayfa…). Her işten önce otomatik yedek alınır; beğenmezseniz Geri Al. Geçmiş kayıtlarınızı, etkinlik bankasını ve ayarları silmesi engellenmiştir."],
   ["v2.8", "Poster Yap'a yeni bölmeler: 1×2 (2 A4), 3×4 (12 A4), 4×4 (16 A4). Asistan istenen her A4 sayısına göre böler (2, 4, 6, 8, 9, 12, 16…)."],
   ["v2.7", "Asistan resim üretirken Figma olmazsa (günlük hak bitti, bağlantı yok) Canva'yı dener. Not: Canva programın içine yalnız küçük resim (yaklaşık 200 piksel) verebiliyor; küçük kartlarda iyi, büyük posterde bulanık olur."],
