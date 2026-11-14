@@ -302,6 +302,10 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .at-araclar>button:not(.d){padding:5px 9px;border:1.5px solid #d5dde6;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:12.5px}
 .at-araclar>button.secili:not(.at-renk){background:#1565c0;color:#fff;border-color:#1565c0}
 .at-araclar .at-renk{width:24px;height:24px}
+.at-tasma{display:inline-flex;border:1px solid #b0bcc8;border-radius:8px;overflow:hidden;margin-left:8px}
+.at-tasma button{border:0;border-radius:0;background:#fff;padding:5px 9px;font:inherit;font-size:13px;cursor:pointer;color:#1a3550}
+.at-tasma button+button{border-left:1px solid #b0bcc8}
+.at-tasma button.secili{background:#2e7d32;color:#fff}
 .at-araclar input[type=color]{width:32px;height:26px;padding:0;border:1px solid #c5d0dc;border-radius:6px}
 .telif{font-size:11px;color:var(--gri);text-align:center;margin-top:20px}
 
@@ -803,7 +807,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v1.8";
+var SURUM = "v1.9";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -826,7 +830,7 @@ var VARSAYILAN = function () {
     sablonlar: [],
     resim: { liste: [], secili: [], mod: "izgara", satir: 3, sutun: 2, sigdir: "contain", doldur: false, hedef: "A5", ozelG: 10, ozelY: 10, tam: false, kagit: "A4", yon: "oto", kenar: 6, aralik: 4, dondur: true, kesim: true, cerceve: false },
     poster: { img: null, duzen: "2x2", yon: "oto", kesim: "sekil", pay: 5, esik: 235, makas: true, etiket: true, bindirme: 0 },
-    atolye: { kagit: "a4d", zemin: "", zemin2: "", secimler: [], sekme: "sablon", yon: "dikey", baslik: "", adSoyad: false, kenar: false, kurumYaz: false, katmanlar: [], secili: null, kat: "hayvan", mod: "renkli", harfTur: "buyuk", harf: "", rakam: "", sonCizim: "", boya: [], arac: "sec", renk: "#e53935", kalinlar: {} },
+    atolye: { kagit: "a4d", zemin: "", zemin2: "", secimler: [], sekme: "sablon", yon: "dikey", baslik: "", adSoyad: false, kenar: false, kurumYaz: false, katmanlar: [], secili: null, kat: "hayvan", mod: "renkli", harfTur: "buyuk", harf: "", rakam: "", sonCizim: "", boya: [], arac: "sec", renk: "#e53935", kalinlar: {}, tasma: "serbest" },
     plan: { tarih: "", baslik: "", grup: "", tema: "", kazanim: "", satirlar: [], secili: [], gecmis: [] },
     akis: { tarih: "", donem: "", grup: "", yas: "", tema: "", deger: "", ezber: "", satirlar: [], secili: [], ihtiyac: "", ozel: "", ev: "", iletisim: "", gecmis: [] },
     banka: { liste: [], secili: [], ara: "", filtre: "" },
@@ -875,18 +879,24 @@ function durumKaydet() {
   var a = anlik();
   if (GPTR >= 0 && GECMIS[GPTR] === a) return;
   GECMIS = GECMIS.slice(0, GPTR + 1); GECMIS.push(a);
-  if (GECMIS.length > 120) GECMIS.shift();
+  while (GECMIS.length > 51) GECMIS.shift(); // en fazla 50 adım geri
   GPTR = GECMIS.length - 1; sakla(); geriDugmeleri();
 }
 function durumKaydetGec() { clearTimeout(gZaman); gZaman = setTimeout(durumKaydet, 600); sakla(); }
 function geriAl() {
   if (gZaman) durumKaydet();
   if (GPTR <= 0) { toast("Geri alınacak işlem yok."); return; }
-  GPTR--; S = JSON.parse(GECMIS[GPTR]); sakla(); aktifCiz(true); geriDugmeleri(); toast("Geri alındı.");
+  GPTR--; geriYukle(GECMIS[GPTR]); toast("Geri alındı.");
 }
 function ileriAl() {
   if (GPTR >= GECMIS.length - 1) { toast("Yinelenecek işlem yok."); return; }
-  GPTR++; S = JSON.parse(GECMIS[GPTR]); sakla(); aktifCiz(true); geriDugmeleri(); toast("Yinelendi.");
+  GPTR++; geriYukle(GECMIS[GPTR]); toast("Yinelendi.");
+}
+// Geri/İleri alırken seçili araç (fırça, renk, kalınlık, taşırma) ve açık sekme değişmesin; yalnız yapılan iş geri gelsin
+function geriYukle(str) {
+  var eski = S; S = JSON.parse(str);
+  if (eski && eski.atolye && S.atolye) ["arac", "renk", "kalinlar", "tasma", "sekme", "kat", "mod", "harfTur"].forEach(function (k) { if (k in eski.atolye) S.atolye[k] = eski.atolye[k]; });
+  sakla(); aktifCiz(true); geriDugmeleri();
 }
 function geriDugmeleri() {
   document.querySelectorAll(".d-geri").forEach(function (b) { b.disabled = GPTR <= 0; });
@@ -2117,6 +2127,54 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     }
     ox.putImageData(od, 0, 0);
   }
+  /* ---- taşırmadan boyama: çizginin içinde başlanan alan ("ic") ya da resimlerin dışı ("dis") ---- */
+  var duvarOnb = { k: "", g: null }, maskeOnb = {};
+  function gecilebilir(cw, ch, k) { // yalnız resim/şekil/yazı katmanları; koyu çizgiler duvar
+    var a = At(), anahtar = cw + "x" + ch + "|" + JSON.stringify(a.katmanlar);
+    if (duvarOnb.k === anahtar) return duvarOnb.g;
+    var C = document.createElement("canvas"); C.width = cw; C.height = ch; var c = C.getContext("2d", { willReadFrequently: true });
+    c.fillStyle = "#fff"; c.fillRect(0, 0, cw, ch); c.setTransform(k, 0, 0, k, 0, 0); a.katmanlar.forEach(function (L) { katmanCiz(c, L); });
+    var d = c.getImageData(0, 0, cw, ch).data, g = new Uint8Array(cw * ch);
+    for (var i = 0, j = 0; j < g.length; i += 4, j++) g[j] = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) > 100 ? 1 : 0;
+    duvarOnb = { k: anahtar, g: g }; maskeOnb = {}; return g;
+  }
+  function bolgeMaskesi(cw, ch, k, iz) {
+    var g = gecilebilir(cw, ch, k), px = Math.round(iz.n[0][0] * k), py = Math.round(iz.n[0][1] * k);
+    var anahtar = iz.m === "dis" ? "dis" : null;
+    if (iz.m === "ic") { // başlangıç noktası çizgi üstündeyse yakındaki açık noktayı bul
+      var bul = null;
+      for (var r = 0; r <= 4 && !bul; r++) for (var oy = -r; oy <= r && !bul; oy++) for (var ox = -r; ox <= r && !bul; ox++) { var qx = px + ox, qy = py + oy; if (qx >= 0 && qy >= 0 && qx < cw && qy < ch && g[qy * cw + qx]) bul = [qx, qy]; }
+      if (!bul) return null; px = bul[0]; py = bul[1];
+    }
+    var m = new Uint8Array(cw * ch), yig = [];
+    if (iz.m === "dis") { for (var x0 = 0; x0 < cw; x0++) { yig.push(x0, 0, x0, ch - 1); } for (var y0 = 0; y0 < ch; y0++) { yig.push(0, y0, cw - 1, y0); } }
+    else { if (maskeOnb["b" + px + "," + py]) return maskeOnb["b" + px + "," + py]; yig.push(px, py); }
+    if (anahtar && maskeOnb[anahtar]) return maskeOnb[anahtar];
+    while (yig.length) {
+      var y = yig.pop(), xx0 = yig.pop(), sat = y * cw, xl = xx0, xr = xx0;
+      if (m[sat + xx0] || !g[sat + xx0]) continue;
+      while (xl > 0 && !m[sat + xl - 1] && g[sat + xl - 1]) xl--;
+      while (xr < cw - 1 && !m[sat + xr + 1] && g[sat + xr + 1]) xr++;
+      for (var xx = xl; xx <= xr; xx++) { m[sat + xx] = 1; if (y > 0 && !m[sat - cw + xx] && g[sat - cw + xx]) yig.push(xx, y - 1); if (y < ch - 1 && !m[sat + cw + xx] && g[sat + cw + xx]) yig.push(xx, y + 1); }
+    }
+    var C = document.createElement("canvas"); C.width = cw; C.height = ch; var c = C.getContext("2d"), id = c.createImageData(cw, ch), q = id.data;
+    for (var j = 0; j < m.length; j++) {
+      var ic = m[j];
+      if (!ic) { var jx = j % cw; ic = (jx > 0 && m[j - 1]) || (jx < cw - 1 && m[j + 1]) || (j >= cw && m[j - cw]) || (j + cw < m.length && m[j + cw]); } // çizginin yumuşak kenarına 1 nokta taş
+      if (ic) q[j * 4 + 3] = 255;
+    }
+    c.putImageData(id, 0, 0);
+    if (anahtar) maskeOnb[anahtar] = C; else maskeOnb["b" + px + "," + py] = C;
+    return C;
+  }
+  function izCizMaskeli(o, iz, k) { // o: k ölçekli bağlam
+    if (!iz.m || !iz.n || !iz.n.length) { izCiz(o, iz); return; }
+    var cw = o.canvas.width, ch = o.canvas.height, M = bolgeMaskesi(cw, ch, k, iz);
+    if (!M) return; // çizginin tam üstünde başlandı: boyama yapılmaz
+    var T = document.createElement("canvas"); T.width = cw; T.height = ch; var t = T.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0); izCiz(t, iz);
+    t.setTransform(1, 0, 0, 1, 0, 0); t.globalCompositeOperation = "destination-in"; t.drawImage(M, 0, 0);
+    o.save(); o.setTransform(1, 0, 0, 1, 0, 0); o.drawImage(T, 0, 0); o.restore();
+  }
   function boyaUygula(x, W, H) {
     var a = At(); if (!a.boya.length && !canli) return;
     var cv = x.canvas, cw = cv.width, ch = cv.height, k = cw / W;
@@ -2126,10 +2184,10 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     else {
       var taban = a.boya.some(function (b) { return b.t === "kova"; }) ? x.getImageData(0, 0, cw, ch) : null;
       O = document.createElement("canvas"); O.width = cw; O.height = ch; var o = O.getContext("2d"); o.setTransform(k, 0, 0, k, 0, 0);
-      a.boya.forEach(function (b) { if (b.t === "kova") kovaDoldur(taban, O, k, b); else izCiz(o, b); });
+      a.boya.forEach(function (b) { if (b.t === "kova") kovaDoldur(taban, O, k, b); else izCizMaskeli(o, b, k); });
       boyaOnb = { k: anahtar, c: O };
     }
-    if (canli) { var T = document.createElement("canvas"); T.width = cw; T.height = ch; var tt = T.getContext("2d"); tt.drawImage(O, 0, 0); tt.setTransform(k, 0, 0, k, 0, 0); izCiz(tt, canli); O = T; }
+    if (canli) { var T = document.createElement("canvas"); T.width = cw; T.height = ch; var tt = T.getContext("2d"); tt.drawImage(O, 0, 0); tt.setTransform(k, 0, 0, k, 0, 0); izCizMaskeli(tt, canli, k); O = T; }
     x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(O, 0, 0); x.restore();
   }
 
@@ -2213,6 +2271,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         e.preventDefault();
         if (ar === "kova") { a.boya.push({ t: "kova", x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, r: a.renk }); durumKaydet(); ekranCiz(); return; }
         canli = { t: ar, r: a.renk, k: a.kalinlar[ar] || BOYA_ARAC[ar][0], n: [[Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10]] };
+        if (ar !== "silgi" && (a.tasma === "ic" || a.tasma === "dis")) canli.m = a.tasma;
         tuval.setPointerCapture(e.pointerId); ekranCiz(); return;
       }
       var L = secili(), tt = tutamac(L, p);
@@ -2704,6 +2763,12 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       RENKLER.forEach(function (c) { alt.appendChild(h("button", { type: "button", class: "at-renk" + (a.renk === c ? " secili" : ""), title: c, style: "background:" + c, onclick: function () { a.renk = c; sakla(); aracCubugu(); } })); });
       var ri = h("input", { type: "color", title: "Başka renk" }); ri.value = a.renk; ri.oninput = function () { a.renk = ri.value; sakla(); }; ri.onchange = aracCubugu; alt.appendChild(ri);
     }
+    if (a.arac === "kalem" || a.arac === "firca" || a.arac === "fosforlu") {
+      var TAS = [["serbest", "Serbest", "Boya her yere gider"], ["ic", "🔒 Sadece içini", "Çizginin içinde başlarsanız boya o alanın dışına taşmaz (ör. yalnız A harfinin içi)"], ["dis", "🔒 Sadece dışını", "Resimlerin ve harflerin içine girmez; yalnız dışarıyı boyar"]];
+      var tk = h("span", { class: "at-tasma", title: "Çizgiden taşmadan boyama" });
+      TAS.forEach(function (q) { tk.appendChild(h("button", { type: "button", class: (a.tasma || "serbest") === q[0] ? "secili" : "", text: q[1], title: q[2], onclick: function () { a.tasma = q[0]; sakla(); aracCubugu(); } })); });
+      alt.appendChild(tk);
+    }
     if (a.arac !== "kova") {
       var g = h("input", { type: "range", min: a.arac === "kalem" ? 0.4 : 2, max: a.arac === "kalem" ? 5 : 30, step: a.arac === "kalem" ? 0.1 : 0.5 }); g.value = a.kalinlar[a.arac];
       var sy = h("span", { class: "at-deger", text: g.value + " mm" }); g.oninput = function () { a.kalinlar[a.arac] = +g.value; sy.textContent = g.value + " mm"; sakla(); };
@@ -2715,7 +2780,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       onayla("Sayfadaki bütün kalem, fırça ve kova boyaları silinsin mi? (Resimler, fotoğraflar ve yazılar kalır.)", function () { a.boya = []; durumKaydet(); ekranCiz(); toast("Boyama temizlendi.", "iyi"); });
     } }));
     k.appendChild(alt);
-    k.appendChild(h("div", { class: "ipucu", style: "margin-top:4px", text: a.arac === "kova" ? "Boyamak istediğiniz alanın içine tıklayın; çizgilere kadar dolar. Yanlış olursa Geri Al (Ctrl+Z)." : a.arac === "silgi" ? "Silgi yalnız kalem, fırça ve kova boyalarını siler. Resim ya da fotoğrafı silmek için 'Seç / Taşı' ile tıklayıp Delete'e basın." : "Sayfanın üzerinde fareyle (dokunmatik ekranda parmakla) çizin." }));
+    k.appendChild(h("div", { class: "ipucu", style: "margin-top:4px", text: a.arac === "kova" ? "Boyamak istediğiniz alanın içine tıklayın; çizgilere kadar dolar. Yanlış olursa Geri Al (Ctrl+Z)." : a.arac === "silgi" ? "Silgi yalnız kalem, fırça ve kova boyalarını siler. Resim ya da fotoğrafı silmek için 'Seç / Taşı' ile tıklayıp Delete'e basın." : (a.tasma === "ic" ? "Sadece içini: boyamaya hangi alanın içinde başlarsanız boya o alanda kalır, çizgiden taşmaz." : a.tasma === "dis" ? "Sadece dışını: boya resimlerin, harflerin ve şekillerin içine girmez." : "Sayfanın üzerinde fareyle (dokunmatik ekranda parmakla) çizin.") + " Yanlış olursa Geri Al (en fazla 50 adım)." }));
   }
 
   /* =================== ŞABLON GALERİSİ ===================
@@ -4163,6 +4228,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v1.9", "Geri Al / İleri Al düzeltildi: her kalem, fırça, silgi ve kova işlemi ayrı adım, en fazla 50 adım geri; Geri Al artık seçili aracı (fırça, renk, kalınlık) değiştirmiyor, Seç/Taşı'ya atmıyor. Etkinlik Stüdyosu boyama araçlarına TAŞIRMADAN BOYAMA: Serbest / 🔒 Sadece içini (hangi alanın içinde başlarsanız boya orada kalır, ör. yalnız A harfinin içi) / 🔒 Sadece dışını (resim, harf ve şekillerin içine girmez)."],
   ["v1.8", "Etkinlik Stüdyosu'na ŞABLON GALERİSİ: arama, kategoriler, küçük resimler; 17 hazır şablon (şekillerden robot + sayma, kes-yapıştır robot, boyama, Türkçe harf, rakam ve sayma, kaç tane?, resimli kartlar, fotoğraflı aslan çerçevesi, Elif-Ba harfleri panosu (doğru harf adlarıyla), Elif-Ba harf çalışma sayfası (resim + harf + harekeler + kubbeli yazma ızgarası), çizgi çalışması, Resfebe, sofra adabı ve yemek duası panosu, numaralı 3×3 kart panosu, haftanın değeri panosu, sınıf kuralları panosu, aferin belgesi); değişkenli şablonlar (harf, rakam, resim, metin seçilir); 'Bu sayfayı şablon olarak kaydet' (şablonlar kalıcıdır, Drive ile eşitlenir, Verileri Temizle silmez), şablonları indir / yükle (sablonlar.json); Ayarlar'da çevrimiçi şablon adresi (GitHub'daki sablonlar.json internet varken otomatik gelir). Şekillere 8 desen çizgisi eklendi (yay, ters yay, zikzak, dalga, kare, ilmek, baklava, testere; tekrar sayısı ayarlanır)."],
   ["v1.7", "Verileri Temizle düzeltildi: yalnız çalışma alanlarını (ekrandaki plan, günlük akış, veli notu, stüdyo sayfası, resim listeleri, sayfa ayarları) boşaltır. Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar hem programda hem Drive'da kalır; Drive bağlantısı açık kalır, dosya silinmez."],
   ["v1.6", "Verileri Temizle artık yalnız programı temizler, Drive'daki dosyaya dokunmaz: Drive bağlıysa temizlemeden önce bağlantı kapatılır; veriler Drive'a Bağla → aynı dosya → Tamam ile geri gelir."],
@@ -4178,7 +4244,7 @@ $("btnKilavuz").onclick = function () {
     "<p>Bilgiler bu bilgisayardaki tarayıcıda saklanır. İnternete yalnız Etkinlik Stüdyosu'nda resim ararken (yalnız arama kelimesi) çıkılır. Bilgisayar değiştirirken <b>Araçlar &gt; Yedek Al</b> ile yedek alın, yeni bilgisayarda <b>Yedek Yükle</b> ile yükleyin; ya da <b>Drive'a Bağla</b> ile işte ve evde aynı veriyle çalışın. Resimler yedeğe ve hafızaya girmez; programı kapatınca resim listeleri boşalır.</p>" +
     "<h4>Drive'a Bağla (işte ve evde aynı veri)</h4><ul><li><b>Araçlar &gt; Drive'a Bağla</b>'ya bir kez basın; açılan pencerede bilgisayarınızdaki Google Drive klasörünü seçin (Linux: <b>~/GoogleDrive</b>, Windows: <b>G:\\Drive'ım</b>) → <b>PROGRAM YEDEKLERİ</b> klasörü → dosya adı <b>ogretmen_veri.json</b> → Kaydet. Diğer bilgisayarda da aynı dosyayı seçin.</li><li>Bundan sonra her değişiklik 1,5 saniye içinde o dosyaya kendiliğinden yazılır; Yedek Al / Yedek Yükle gerekmez. Program açılırken ve pencereye her döndüğünüzde dosyaya bakar; başka bilgisayarda daha yeni kayıt yapıldıysa önce onu yükler ve 'Drive'da daha yeni kayıt vardı, o yüklendi' der. Eski açık bir sekme yeni kaydın üstüne yazamaz.</li><li>Seçilen dosyada kayıt varsa sorulur: <b>Tamam</b> → dosyadaki kayıt yüklenir; <b>İptal</b> → ekrandakiler dosyaya yazılır.</li><li>Düğmenin rengi durumu gösterir: <b>gri</b> bağlı değil · <b>yeşil</b> Drive'a Bağlı (üzerine gelince dosya adı ve son eşitleme saati) · <b>turuncu</b> izin gerekiyor (sayfada bir yere tıklayın, Chrome sorunca 'İzin ver' deyin) · <b>kırmızı</b> yazma hatası (veriler bu bilgisayarda durur).</li><li>Bağlıyken düğmeye basınca başka dosya seçebilir ya da seçme penceresini kapatıp bağlantıyı kesebilirsiniz. Menünün açık/kapalı durumu, yakınlaştırma ve açık sayfa her bilgisayarda ayrı kalır. Drive dosyası Yedek Al dosyasıyla aynı biçimdedir; Yedek Yükle ile de açılır. <b>Verileri Temizle</b> yalnız çalışma alanlarını boşaltır; Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar hem programda hem Drive'daki dosyada kalır. Drive bağlantısı açık kalır, dosya silinmez.</li><li>Yalnız Chrome ve Edge'de çalışır. Fotoğraflar Drive'a gitmez.</li></ul>" +
     "<h4>Ortak düğmeler</h4><ul><li><b>↶ Geri Al / ↷ İleri Al</b>: son değişikliği geri alır / yineler. Klavyede <b>Ctrl+Z</b> ve <b>Ctrl+Y</b>.</li><li><b>Silme</b>: satırları kutucukla ya da resimleri tıklayarak seçin, <b>Delete</b> tuşuna basın ya da kırmızı düğmeyi kullanın. Her silmede onay sorulur.</li><li><b>✖ Temizle</b>: o sayfadaki her şeyi siler (onay sorar; Geri Al ile geri gelir).</li><li><b>⬇ Çıktı ▾</b> menüsü: <b>Önizle</b> (fare tekerleğiyle yakınlaşır), <b>Yazdır</b>, <b>PDF</b>, <b>Word</b>, <b>Excel</b>; o sayfanın belgesine uygun olanlar görünür.</li><li>Menüdeki klasörler kapalı açılır; açtığınız sayfanın klasörü kendiliğinden açılır.</li><li>Sarı alanlar yazılabilir alanlardır; baskıda ve PDF'te sarı görünmez.</li></ul>" +
-    "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e gönderilir, resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
+    "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'. <b>Taşırmadan boyama</b>: kalem, fırça ve fosforluda <b>Serbest</b> / <b>🔒 Sadece içini</b> (boyamaya hangi alanın içinde başlarsanız boya o alanda kalır) / <b>🔒 Sadece dışını</b> (resim, harf ve şekillerin içine girmez). Her boyama hareketi ayrı adımdır; <b>Geri Al</b> en fazla 50 adım geri gider ve seçili aracı değiştirmez.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e gönderilir, resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
     "<h4>2 Çalışma Sayfaları</h4><ul><li>Hepsi tek sayfada: sayfanın üstündeki düğmelerden türü seçin.</li><li>Çizgi çalışması, labirent, sayma, rakam yazma, örüntü, eşleştirme, gölge, farklı olanı bul, şekil boyama sayfalarını kendiliğinden çizer. 🎲 ile yeni bir sayfa üretilir.</li><li>Resimden Boyama: verdiğiniz resmin çizgilerini çıkarıp boyama sayfası yapar.</li></ul>" +
     "<h4>3 Resimden Boyama</h4><ul><li>Bir resmin çizgilerini çıkarıp boyama sayfası yapar. '🗑 Resmi kaldır' resmi kaldırır.</li></ul>" +
     "<h4>4 Resim Yerleştirme</h4><ul><li>Bir sayfaya 1-24 resim yerleştirir ya da resmi A5, A6, 13×18 gibi bir ölçüye getirir.</li><li>'Ölçü tam olsun' işaretli değilse yazıcı payı için hafifçe küçültür; böylece bir A4'e 2 A5 sığar.</li><li>'✖ Temizle' listedeki bütün resimleri siler.</li></ul>" +
