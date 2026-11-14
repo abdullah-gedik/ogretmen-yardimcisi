@@ -303,6 +303,9 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .at-araclar>button.secili:not(.at-renk){background:#1565c0;color:#fff;border-color:#1565c0}
 .at-araclar .at-renk{width:24px;height:24px}
 .asistan{background:#fff;border:2px solid #6a1b9a;border-radius:14px;padding:10px 12px;margin:0 0 12px;box-shadow:0 2px 10px rgba(106,27,154,.12)}
+.as-yuz{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#6a1b9a;color:#fff;font-size:20px;vertical-align:middle;overflow:hidden;flex:0 0 40px;box-shadow:0 0 0 3px #e1bee7}
+.as-yuz img{width:100%;height:100%;object-fit:cover;display:block}.asistan-git .as-yuz{background:#fff;color:#6a1b9a;box-shadow:none}
+.as-ad{display:inline-flex;align-items:center;gap:8px}
 .as-ust{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}.as-ad{font-weight:800;font-size:18px;color:#6a1b9a}.as-not{font-size:12px;color:#78909c}
 .as-sat{display:flex;gap:8px;align-items:stretch}.as-sat textarea{flex:1;font:inherit;font-size:16px;border:1.5px solid #ce93d8;border-radius:10px;padding:8px 10px;resize:vertical;min-height:48px}
 .as-yap,.as-mik{border:0;border-radius:10px;padding:0 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;min-height:48px}
@@ -495,9 +498,9 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 </nav>
 
 <main><div id="zoomKap">
-<a id="asistanGit" class="asistan-git" href="https://claude.ai/artifact/PmkyTSGh9j52kogYX1KeVn" target="_blank" rel="noopener">🤖 <b>Asistan'a söylemek için tıklayın</b> <span>Asistan yalnız Claude sayfasında çalışır; burası yedek adres.</span> ➜</a>
+<a id="asistanGit" class="asistan-git" href="https://claude.ai/artifact/PmkyTSGh9j52kogYX1KeVn" target="_blank" rel="noopener"><span class="as-yuz">✨</span> <b>Asistan'a söylemek için tıklayın</b> <span>Asistan yalnız Claude sayfasında çalışır; burası yedek adres.</span> ➜</a>
 <div id="asistan" class="asistan" style="display:none">
-  <div class="as-ust"><span class="as-ad">🤖 Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın.</span></div>
+  <div class="as-ust"><span class="as-ad"><span class="as-yuz" id="asYuz">✨</span> Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın.</span></div>
   <div class="as-sat"><textarea id="asGiris" rows="2" placeholder="Ör. Sabır konusu için boyama sayfası hazırla · Be harfinin 3 görevli sayfasını aç · Başlığı büyüt"></textarea>
     <button type="button" id="asMik" class="as-mik" style="display:none">🎤 Konuş</button><button type="button" id="asYap" class="as-yap">Yap ➜</button></div>
   <div id="asOrnek" class="as-ornek"><button type="button">Sabır konusunun boyama sayfasını aç</button><button type="button">Be harfinin 3 görevli sayfasını Stüdyo'da aç</button><button type="button">Kedili, "Hayvanları severim" yazan bir boyama sayfası yap</button></div>
@@ -906,7 +909,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.2";
+var SURUM = "v3.3";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1033,6 +1036,7 @@ function mesgul(acik, yazi) {
   x.textContent = yazi || "Hazırlanıyor…";
 }
 function bekle(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+var ASISTAN_YUZ = ""; // Asistan'ın resmi: yalnız Claude sayfasındaki kopyaya konur (GitHub'a konmaz)
 var CLAUDE_ORTAM = !!(window.claude && typeof window.claude.use === "function"); // program Claude'un sayfasında mı açıldı
 var CL_INDIR = null;
 function claudeOrtamAyarla() { // Claude sayfasında çalışmayan şeyleri gizle, indirmeyi bağla
@@ -3671,6 +3675,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
   function asistanBasla() {
     if (asistanBasla.oldu || !(window.claude && typeof window.claude.use === "function")) return;
     asistanBasla.oldu = true; CLAUDE_ORTAM = true; claudeOrtamAyarla();
+    if (ASISTAN_YUZ) { var yz = $("asYuz"); yz.textContent = ""; yz.appendChild(h("img", { src: ASISTAN_YUZ, alt: "" })); }
     var kontrolGerek = false, resimVar = false;
     var kap = $("asistan"), giris = $("asGiris"), cevap = $("asCevap"), mik = $("asMik"), gecmis = [], calisiyor = false, sample = null, dikte = null;
     claude.use("sample").then(function (s) { sample = s; if (!s) return; kap.style.display = ""; s.limits().then(function (l) { resimVar = !!(l && l.images); }).catch(function () {}); });
@@ -5029,6 +5034,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.3", "Asistan kutusundaki yeşil robot kaldırıldı; Claude sayfasında Asistan'ın yerinde kendi seçtiğiniz resim, GitHub adresinde sade ✨ simgesi görünür."],
   ["v3.2", "Menüyü gizle / göster düğmesi (arama kutusunun sağındaki ≡) SGK e-Bildirge programındaki gibi yapıldı: basınca menü ince bir şeride iner, yalnız simgeler kalır (adları fare üstündeyken görünür), düğme ters döner; yeniden basınca açılır. Seçim hatırlanır. Telefonda menü ☰ ile açılıp kapanır."],
   ["v3.1", "TELEFON GÖRÜNÜMÜ: dar ekranda menü sol üstteki ☰ düğmesinin arkasına gizlenir (bir bölüme dokununca kapanır); Asistan kutusu, Konular (yatay kaydırılan konu düğmeleri, ikişerli sayfa kartları) ve Etkinlik Stüdyosu (önce sayfa, altında araçlar) telefona sığar."],
   ["v3.0", "GitHub adresinde en üste mor '🤖 Asistan'a söylemek için tıklayın' düğmesi eklendi; Asistan'ın çalıştığı Claude sayfasını açar."],
