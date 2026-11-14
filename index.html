@@ -468,26 +468,11 @@ table.tb td.ort,table.tb th.ort{text-align:center}
         <li><div class="tab" data-view="v-poster" title="Poster Yap (Büyüt ve Böl)"><span class="no">5</span><svg class="ic"><use href="#i-poster"/></svg><span class="ag-ad">Poster Yap (Büyüt ve Böl)</span></div></li>
       </ul>
     </li>
-    <li class="ag-klasor ag-mavi" data-k="plan">
-      <div class="ag-bas" title="Planlama"><span class="ag-kutu"></span><svg class="ag-kl kapaliyken"><use href="#i-klasor"/></svg><svg class="ag-kl acikken"><use href="#i-klasorAcik"/></svg><span class="ag-ad">Planlama</span></div>
-      <ul>
-        <li><div class="tab" data-view="v-plan" title="Haftalık Plan"><span class="no">6</span><svg class="ic"><use href="#i-takvim"/></svg><span class="ag-ad">Haftalık Plan</span></div></li>
-        <li><div class="tab" data-view="v-akis" title="Günlük Akış Programı"><span class="no">7</span><svg class="ic"><use href="#i-saat"/></svg><span class="ag-ad">Günlük Akış Programı</span></div></li>
-        <li><div class="tab" data-view="v-banka" title="Etkinlik Bankası"><span class="no">8</span><svg class="ic"><use href="#i-banka"/></svg><span class="ag-ad">Etkinlik Bankası</span></div></li>
-      </ul>
-    </li>
-    <li class="ag-klasor ag-yesil" data-k="veli">
-      <div class="ag-bas" title="Veli ve Kayıtlar"><span class="ag-kutu"></span><svg class="ag-kl kapaliyken"><use href="#i-klasor"/></svg><svg class="ag-kl acikken"><use href="#i-klasorAcik"/></svg><span class="ag-ad">Veli ve Kayıtlar</span></div>
-      <ul>
-        <li><div class="tab" data-view="v-veli" title="Veli Bilgilendirme Notu"><span class="no">9</span><svg class="ic"><use href="#i-mektup"/></svg><span class="ag-ad">Veli Bilgilendirme Notu</span></div></li>
-        <li><div class="tab" data-view="v-yapilan" title="Yapılan Etkinlikler"><span class="no">10</span><svg class="ic"><use href="#i-liste"/></svg><span class="ag-ad">Yapılan Etkinlikler</span></div></li>
-      </ul>
-    </li>
     <li class="ag-klasor ag-gri" data-k="arac">
       <div class="ag-bas" title="Araçlar"><span class="ag-kutu"></span><svg class="ag-kl kapaliyken"><use href="#i-klasor"/></svg><svg class="ag-kl acikken"><use href="#i-klasorAcik"/></svg><span class="ag-ad">Araçlar</span></div>
       <ul>
-        <li><div class="tab" data-view="v-ayarlar" title="Ayarlar"><span class="no">11</span><svg class="ic"><use href="#i-ayar"/></svg><span class="ag-ad">Ayarlar</span></div></li>
-        <li><div class="tab" data-view="v-referans" title="Kâğıt ve Baskı Bilgileri"><span class="no">12</span><svg class="ic"><use href="#i-ref"/></svg><span class="ag-ad">Kâğıt ve Baskı Bilgileri</span></div></li>
+        <li><div class="tab" data-view="v-ayarlar" title="Ayarlar"><span class="no">6</span><svg class="ic"><use href="#i-ayar"/></svg><span class="ag-ad">Ayarlar</span></div></li>
+        <li><div class="tab" data-view="v-referans" title="Kâğıt ve Baskı Bilgileri"><span class="no">7</span><svg class="ic"><use href="#i-ref"/></svg><span class="ag-ad">Kâğıt ve Baskı Bilgileri</span></div></li>
         <li><button type="button" class="ag-is" id="btnYedekYukle" title="Yedek Yükle (.json)"><svg class="ic"><use href="#i-yukle"/></svg><span class="ag-ad">Yedek Yükle</span></button></li>
         <li><button type="button" class="ag-is" id="btnYedekAl" title="Yedek Al (.json)"><svg class="ic"><use href="#i-indir"/></svg><span class="ag-ad">Yedek Al</span></button></li>
         <li><button type="button" class="ag-is" id="btnDrive" title="Drive'a Bağla"><svg class="ic"><use href="#i-bulut"/></svg><span class="ag-ad">Drive'a Bağla</span></button></li>
@@ -836,7 +821,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 
 <!-- ================= 12 REFERANS ================= -->
 <section class="view" id="v-referans">
-  <div class="sayfaBas" data-no="12" data-ad="Kâğıt ve Baskı Bilgileri" data-araclar=""></div>
+  <div class="sayfaBas" data-no="7" data-ad="Kâğıt ve Baskı Bilgileri" data-araclar=""></div>
   <div class="kart"><h3>Kâğıt ölçüleri</h3>
     <table class="tb" style="max-width:520px"><tr><th>Kâğıt</th><th>Ölçü (mm)</th><th>Not</th></tr>
     <tr><td>A3</td><td>297 × 420</td><td>2 adet A4 büyüklüğünde</td></tr>
@@ -857,7 +842,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 
 <!-- ================= 11 AYARLAR ================= -->
 <section class="view" id="v-ayarlar">
-  <div class="sayfaBas" data-no="11" data-ad="Ayarlar (Kurum ve Öğretmen)" data-araclar="geri,ileri"></div>
+  <div class="sayfaBas" data-no="6" data-ad="Ayarlar (Kurum ve Öğretmen)" data-araclar="geri,ileri"></div>
   <div class="kart" style="max-width:640px"><h3>Belgelerde görünecek bilgiler</h3>
     <div class="ipucu" style="margin-bottom:8px">Bu bilgiler yalnız bu tarayıcıda saklanır, programın içine yazılmaz.</div>
     <label class="sat"><span>Kurum adı</span><input type="text" id="ayKurum" style="width:340px"></label>
@@ -910,7 +895,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.7";
+var SURUM = "v3.8";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1371,6 +1356,7 @@ function sayfaBasliklari() {
   });
 }
 function gorunumAc(v, tur) {
+  if (["v-plan", "v-akis", "v-banka", "v-veli", "v-yapilan"].indexOf(v) >= 0) v = "v-konular"; // v3.8'de menüden kaldırıldı
   UI.view = v; if (tur) UI.tur = tur;
   document.querySelectorAll(".view").forEach(function (s) { s.classList.toggle("on", s.id === v); });
   document.querySelectorAll(".agac .tab").forEach(function (t) {
@@ -1466,14 +1452,14 @@ $("yedekDosya").onchange = function (e) {
 };
 $("btnTemizle").onclick = function () {
   /* Verileri Temizle yalnız çalışma alanlarını boşaltır. KALANLAR: Kaydet ile saklanıp Geçmiş'te görünen kayıtlar,
-     kayıt listeleri (Etkinlik Bankası, Yapılan Etkinlikler) ve Ayarlar. Drive bağlıysa bağlı kalır; Drive'daki
+     menüden kaldırılan bölümlerin (plan, akış, veli notu, banka, yapılanlar) bilgileri ve Ayarlar. Drive bağlıysa bağlı kalır; Drive'daki
      dosyaya kaydedilenler korunarak yazılır, dosya silinmez. */
-  onayla("Çalışma alanları temizlenecek: ekrandaki plan, günlük akış, veli notu, Etkinlik Stüdyosu sayfası, resim listeleri ve sayfa ayarları.\n\nSİLİNMEYENLER: Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, şablonlarınız, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar. Drive'daki dosya silinmez, kaydedilenler orada da kalır.\n\nDevam edilsin mi? (Geri Al ile geri getirebilirsiniz.)", function () {
+  onayla("Çalışma alanları temizlenecek: Etkinlik Stüdyosu sayfası, resim listeleri ve sayfa ayarları.\n\nSİLİNMEYENLER: Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, şablonlarınız, Asistan'ın resimleri ve Ayarlar. Drive'daki dosya silinmez, kaydedilenler orada da kalır.\n\nDevam edilsin mi? (Geri Al ile geri getirebilirsiniz.)", function () {
     var y = VARSAYILAN();
-    y.plan.gecmis = S.plan.gecmis; y.akis.gecmis = S.akis.gecmis; y.veli.gecmis = S.veli.gecmis;
+    y.plan = S.plan; y.akis = S.akis; y.veli = S.veli; // v3.8: menüden kalktılar, bilgileri dokunulmadan kalır
     y.banka.liste = S.banka.liste; y.yapilan.liste = S.yapilan.liste; y.ayar = S.ayar; y.sablonlar = S.sablonlar;
     S = y; durumKaydet(); aktifCiz(true);
-    toast("Çalışma alanları temizlendi. Geçmiş'teki kayıtlar, şablonlarınız, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar duruyor.", "iyi");
+    toast("Çalışma alanları temizlendi. Geçmiş'teki kayıtlar, şablonlarınız ve Ayarlar duruyor.", "iyi");
   });
 };
 
@@ -3892,14 +3878,14 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       "S (programın bütün verisi), UI.view (açık ekran), At() = S.atolye (Stüdyo sayfası: kagit a4d|a4y|a3d|a3y, baslik, adSoyad, kenar, zemin, zemin2, katmanlar[], boya[]). " +
       "Katman türleri (ölçüler mm, x,y ORTA nokta, A4 dikey 210x297): yazi {tip:'yazi', metin, x, y, boy, renk, font, mod:'renkli'|'cizgi'|'kesik', hiza:'orta'|'sol'|'sag', dolgu:'gokkusagi'?, kenarK, kenarR, don}; " +
       "sekil {tip:'sekil', sekil, x, y, w, h, dolgu, kenarR, kenarK, kenarStil:'duz'|'kesik'|'nokta', kose, don}; cizim (kütüphane resmi) {tip:'cizim', ad: KUT anahtarı, x, y, w, h, mod:'renkli'|'cizgi'|'kesik'}. Eklemek: katmanEkle(nesne, true). sayfa(At(), {kagit, adSoyad, kenar, zemin}) sayfa ayarı; BASLIK(metin, y, boy) gökkuşağı başlık; robotCiz(x, y, ölçek) şekillerden robot. " +
-      "Diğer bölümler ve S anahtarları: v-plan S.plan (haftalık plan), v-akis S.akis (günlük akış), v-veli S.veli (veli notu: hitap, hafta, sure, deger, etkinlik, ev, duyuru, kapanis), v-calisma S.calisma, v-boyama S.boyama, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-banka, v-yapilan, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
+      "Diğer bölümler ve S anahtarları: v-calisma S.calisma, v-boyama S.boyama, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
       "Baskı/PDF: var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false); sonra yazdirSayfalar([{tur:'tuval', tuval:t.c, w:o.W, h:o.H}]) ya da pdfIndirSayfalar(aynısı). Hazır sayfa tuvali: knTuval(knSablon(KONULAR[i], KN_SAYFA[j])). " +
       "YASAK: S.*.gecmis, S.banka, S.yapilan ve S.ayar'ı silmek; localStorage'ı temizlemek. Kod bitince program kendisi kaydeder ve yeniden çizer.";
     function talimat() {
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
         "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
-        "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Haftalık Plan, Günlük Akış, Etkinlik Bankası, Veli Notu. Bunlar VAR; 'yapamıyorum' deme. ASLA 'programda yok', 'elimde yok', 'yapamıyorum' deyip durma ve öğretmene seçenek sorma: isteğe en yakın şeyi araçlarla HEMEN YAP, sonra ne yaptığını tek cümleyle söyle. Öğretmen düzeltirse ('4 değil 2 dedim') itiraz etmeden söylediği gibi yeniden yap. " +
-        "Hazır araçlar bir işi tam yapamıyorsa (yeni bir düzen, özel bölme, toplu değişiklik, plana/veli notuna yazı ekleme, birden çok sayfa…) serbest_kod ile programın içinde KENDİN yap; programda düğmesi olmaması engel değil. " +
+        "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Ayarlar. Bunlar VAR; 'yapamıyorum' deme. ASLA 'programda yok', 'elimde yok', 'yapamıyorum' deyip durma ve öğretmene seçenek sorma: isteğe en yakın şeyi araçlarla HEMEN YAP, sonra ne yaptığını tek cümleyle söyle. Öğretmen düzeltirse ('4 değil 2 dedim') itiraz etmeden söylediği gibi yeniden yap. " +
+        "Hazır araçlar bir işi tam yapamıyorsa (yeni bir düzen, özel bölme, toplu değişiklik, birden çok sayfa…) serbest_kod ile programın içinde KENDİN yap; programda düğmesi olmaması engel değil. " +
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Günlük resim hakkı sınırlı (yaklaşık 30): gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
@@ -5039,6 +5025,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.8", "Menü sadeleşti: Planlama (Haftalık Plan, Günlük Akış Programı, Etkinlik Bankası) ve Veli ve Kayıtlar (Veli Bilgilendirme Notu, Yapılan Etkinlikler) bölümleri kaldırıldı. Eski kayıtlarınız silinmedi, yedekte durur. Ayarlar 6, Kâğıt ve Baskı Bilgileri 7 oldu. Konulardaki hazır veli mektubu sayfaları duruyor."],
   ["v3.7", "Canva yedeği kaldırıldı: Canva programa yalnız çok küçük, bulanık resim verebildiği için Asistan artık yalnız Figma ile çizer; günlük hak bitince bunu söyler ve kütüphanedeki en yakın resmi kullanır. Stüdyo'daki 'Asistan'ın resimleri' bölümünde her resmin köşesinde 🗑 sil düğmesi var (onay ister)."],
   ["v3.6", "Asistan dinî resimlerde: melek resmi de çizmez; Arapça yazıyı (Allah lafzı, Besmele, ayet, dua) resme yazdırmaz, sayfaya Arapça yazı tipiyle ayrıca yazar; namaz, abdest gibi hareketleri sade ve doğru tarif eder; kız çocuklarını başörtülü ve kapalı giysili çizdirir."],
   ["v3.5", "Asistan resim üretirken peygamberlerin ve sahabenin resmini çizmez (yerine cami, Kâbe, hilal, Kur'an gibi resim önerir); gerçek kişi ve çizgi film karakteri çizmez, benzer özgün karakter üretir; resimdeki yazıları sayfaya ayrı yazı olarak ekler."],
@@ -5078,11 +5065,6 @@ $("btnKilavuz").onclick = function () {
     "<h4>3 Resimden Boyama</h4><ul><li>Bir resmin çizgilerini çıkarıp boyama sayfası yapar. '🗑 Resmi kaldır' resmi kaldırır.</li></ul>" +
     "<h4>4 Resim Yerleştirme</h4><ul><li>Bir sayfaya 1-24 resim yerleştirir ya da resmi A5, A6, 13×18 gibi bir ölçüye getirir.</li><li>'Ölçü tam olsun' işaretli değilse yazıcı payı için hafifçe küçültür; böylece bir A4'e 2 A5 sığar.</li><li>'✖ Temizle' listedeki bütün resimleri siler.</li></ul>" +
     "<h4>5 Poster Yap</h4><ul><li>Görseli büyütüp 2×2, 2×3 ya da 3×3 A4'e böler ya da tek A3 yapar.</li><li>Kesim çizgisi şeklin çevresini izler (arka planı beyaz ya da saydam görsellerde) ya da düz çerçeve olur. Makas ve 'BURADAN BAŞLAYIN' yazısı kesime başlanacak yeri gösterir.</li><li>Parçaların altında numara ve yerini gösteren küçük kare vardır. Köşelerdeki ince işaretlerden kenar boşluğunu kesip parçaları birleştirin.</li><li>'🗑 Görseli kaldır' ya da üstteki 'Sil' görseli kaldırır.</li></ul>" +
-    "<h4>6 Haftalık Plan</h4><ul><li>Günlere konu, sure/dua, değerler, oyun, boyama yazın. Kutuya tıklayınca öneriler çıkar (etkinlik bankasındakiler de).</li><li><b>Kaydet</b> haftayı geçmişe kaydeder, <b>Geçmiş</b> eski planları açar.</li></ul>" +
-    "<h4>7 Günlük Akış Programı</h4><ul><li>Bir günün akışını A4'e hazırlar: üstte kurum, sınıf, yaş grubu, tarih, dönem ve haftanın teması; altında <b>Bu Haftanın Değeri</b> ve <b>Haftanın Ezberi</b> kartları.</li><li>Zaman çizelgesi kendiliğinden şu bölümlerle açılır: Sabah Karşılama ve Kahvaltı, Kur'an-ı Kerim ve Elif-Ba Saati, Sabah Etkinlikleri, Değerler Eğitimi ve Siyer, Öğle Yemeği ve Dinlenme, Öğleden Sonra ve Branş Etkinlikleri, Günü Değerlendirme ve Eve Dönüş. Saatler boş gelir; kendi saatlerinizi yazın.</li><li>Her satıra <b>tür etiketi</b> (Kur'an-Elif-Ba, Değerler, Siyer, Oyun, Sanat, Okuma-Yazmaya Hazırlık…) ve <b>kazanım</b> (ince motor, dikkat, sosyal iletişim…) yazılır; baskıda etiketler renkli görünür. Etkinlik bankasından seçilen etkinliğin türü ve kazanımı boş hücrelere gelir.</li><li>Altta <b>Veli Bilgilendirme ve Duyurular</b>: evden getirilecekler, özel gün ve gezi notları, velilere ev etkinliği, acil durum iletişim (Ayarlar'dan).</li><li><b>Haftalık plandan al</b> tema, değer ve ezberi plandan alır. <b>Örnekle doldur</b> örnek yarım günlük bir akış yükler (Geri Al ile geri dönülür).</li></ul>" +
-    "<h4>8 Etkinlik Bankası</h4><ul><li>Etkinlikleri bir kez yazın; 🖨 ile tek tıkla etkinlik kartı yazdırın, '＋Plan' ile haftalık plana ekleyin.</li></ul>" +
-    "<h4>9 Veli Bilgilendirme Notu</h4><ul><li>A4 ya da bir A4'e 2 adet A5 çıkar. 'Haftalık plandan doldur' sure, değer ve etkinlikleri plandan alır.</li></ul>" +
-    "<h4>10 Yapılan Etkinlikler</h4><ul><li>Yapılan etkinliği tarih, katılım, açıklama ve isteğe bağlı fotoğrafla kaydeder; tarih aralığına göre rapor verir.</li></ul>" +
     "<h4>Sürüm notları</h4><ul>" + SURUM_NOTLARI.map(function (s) { return "<li><b>" + s[0] + "</b> — " + s[1] + "</li>"; }).join("") + "</ul>" });
   modalAc("Kullanma Kılavuzu · sürüm " + SURUM, [k]);
 };
