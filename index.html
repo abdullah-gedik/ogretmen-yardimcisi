@@ -302,6 +302,14 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .at-araclar>button:not(.d){padding:5px 9px;border:1.5px solid #d5dde6;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:12.5px}
 .at-araclar>button.secili:not(.at-renk){background:#1565c0;color:#fff;border-color:#1565c0}
 .at-araclar .at-renk{width:24px;height:24px}
+.asistan{background:#fff;border:2px solid #6a1b9a;border-radius:14px;padding:10px 12px;margin:0 0 12px;box-shadow:0 2px 10px rgba(106,27,154,.12)}
+.as-ust{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}.as-ad{font-weight:800;font-size:18px;color:#6a1b9a}.as-not{font-size:12px;color:#78909c}
+.as-sat{display:flex;gap:8px;align-items:stretch}.as-sat textarea{flex:1;font:inherit;font-size:16px;border:1.5px solid #ce93d8;border-radius:10px;padding:8px 10px;resize:vertical;min-height:48px}
+.as-yap,.as-mik{border:0;border-radius:10px;padding:0 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;min-height:48px}
+.as-yap{background:#6a1b9a;color:#fff}.as-yap:disabled{opacity:.6}.as-mik{background:#f3e5f5;color:#6a1b9a}.as-mik.dinliyor{background:#e53935;color:#fff}
+.as-ornek{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.as-ornek button{border:1px solid #e1bee7;background:#faf5fc;color:#4a148c;border-radius:16px;padding:3px 10px;font:inherit;font-size:12px;cursor:pointer}
+.as-cevap{margin-top:8px;background:#f3e5f5;border-radius:10px;padding:8px 12px;color:#311b92;white-space:pre-wrap}
+@media(max-width:600px){.as-sat{flex-wrap:wrap}.as-sat textarea{flex:1 1 100%}.as-yap,.as-mik{flex:1}}
 .kn-uc{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
 .kn-grup{font-weight:700;color:#5d6b7a;font-size:12px;margin:10px 2px 4px;text-transform:uppercase;letter-spacing:.3px}
 .kn-konu{display:block;width:100%;text-align:left;border:1px solid #e1e7ee;border-left:5px solid var(--kr);background:#fff;border-radius:8px;padding:7px 10px;margin:0 0 5px;font:inherit;font-size:14px;cursor:pointer;color:#22313f}
@@ -435,6 +443,13 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 </nav>
 
 <main><div id="zoomKap">
+<div id="asistan" class="asistan" style="display:none">
+  <div class="as-ust"><span class="as-ad">🤖 Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın.</span></div>
+  <div class="as-sat"><textarea id="asGiris" rows="2" placeholder="Ör. Sabır konusu için boyama sayfası hazırla · Be harfinin 3 görevli sayfasını aç · Başlığı büyüt"></textarea>
+    <button type="button" id="asMik" class="as-mik" style="display:none">🎤 Konuş</button><button type="button" id="asYap" class="as-yap">Yap ➜</button></div>
+  <div id="asOrnek" class="as-ornek"><button type="button">Sabır konusunun boyama sayfasını aç</button><button type="button">Be harfinin 3 görevli sayfasını Stüdyo'da aç</button><button type="button">Kedili, "Hayvanları severim" yazan bir boyama sayfası yap</button></div>
+  <div id="asCevap" class="as-cevap" style="display:none"></div>
+</div>
 
 <!-- ================= 4 RESİM YERLEŞTİRME ================= -->
 <section class="view" id="v-resim">
@@ -838,7 +853,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v2.2";
+var SURUM = "v2.3";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -965,7 +980,20 @@ function mesgul(acik, yazi) {
   x.textContent = yazi || "Hazırlanıyor…";
 }
 function bekle(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+var CLAUDE_ORTAM = !!(window.claude && typeof window.claude.use === "function"); // program Claude'un sayfasında mı açıldı
+var CL_INDIR = null;
+function claudeOrtamAyarla() { // Claude sayfasında çalışmayan şeyleri gizle, indirmeyi bağla
+  if (claudeOrtamAyarla.oldu) return; claudeOrtamAyarla.oldu = true;
+  window.claude.use("downloads").then(function (d) { CL_INDIR = d; });
+  var st = document.createElement("style"); st.textContent = "#btnDrive,#atWebKap{display:none!important}"; document.head.appendChild(st);
+}
+if (CLAUDE_ORTAM) claudeOrtamAyarla();
 function indir(blob, ad) {
+  if (CLAUDE_ORTAM) { // Claude sayfasında indirme yalnız onaylı "kaydet" ile olur
+    if (!CL_INDIR) { toast("Bu sayfada dosya indirilemiyor.", "kotu"); return; }
+    CL_INDIR.save({ filename: ad, data: blob }).catch(function (e) { if (e && e.code !== "declined") toast("Dosya kaydedilemedi (" + (e.code || e) + ").", "kotu"); });
+    return;
+  }
   var a = h("a", { href: URL.createObjectURL(blob), download: ad }); document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
 }
@@ -1218,6 +1246,7 @@ async function onizle() {
   govde.addEventListener("wheel", function (e) { e.preventDefault(); olcek = Math.max(0.2, Math.min(3, olcek * (e.deltaY < 0 ? 1.1 : 0.9))); uygula(); }, { passive: false });
 }
 function yazdirSayfalar(s) {
+  if (CLAUDE_ORTAM) { toast("Claude sayfasında doğrudan yazdırılamıyor; PDF hazırlanıyor, açıp yazdırın.", "iyi"); pdfIndirSayfalar(s); return; }
   var alan = $("baskiAlani"); alan.innerHTML = "";
   var w = s[0].w, hh = s[0].h;
   $("pageStyle").textContent = "@page{size:" + w + "mm " + hh + "mm;margin:0}";
@@ -3561,6 +3590,113 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     sayfalar: function () { return knAktifSayfalar(); },
     ad: function () { var a = knSecPdf || knKonu().ad; knSecPdf = null; return dosyaAdiTemiz(a) + "_" + bugun(); }
   };
+  /* =================== ASİSTAN (yalnız Claude sayfasında açıldığında; isteği Claude'a sorar, programın içinde iş yapar) =================== */
+  function asistanBasla() {
+    if (asistanBasla.oldu || !(window.claude && typeof window.claude.use === "function")) return;
+    asistanBasla.oldu = true; CLAUDE_ORTAM = true; claudeOrtamAyarla();
+    var kap = $("asistan"), giris = $("asGiris"), cevap = $("asCevap"), mik = $("asMik"), gecmis = [], calisiyor = false, sample = null, dikte = null;
+    claude.use("sample").then(function (s) { sample = s; if (s) kap.style.display = ""; });
+    claude.use("dictation").then(function (d) { dikte = d; if (!d) return; mik.style.display = "";
+      d.onPartial(function (o) { giris.value = (giris.dataset.taban || "") + o.text; });
+      d.onFinal(function (o) { giris.dataset.taban = (giris.dataset.taban || "") + o.text + " "; giris.value = giris.dataset.taban; });
+      d.onState(function (o) { mik.classList.toggle("dinliyor", o.state === "listening"); mik.textContent = o.state === "listening" ? "⏹ Dur" : "🎤 Konuş"; });
+    });
+    mik.onclick = function () {
+      if (!dikte) return;
+      if (mik.classList.contains("dinliyor")) { dikte.stop().catch(function () {}); return; }
+      giris.dataset.taban = giris.value ? giris.value + " " : "";
+      dikte.start().catch(function (e) { if (e && e.code === "not_granted") { mik.style.display = "none"; toast("Mikrofon izni verilmedi; yazarak devam edebilirsiniz."); } });
+    };
+    var SAYFA_TUR = ["boyama", "dogruyanlis", "hikaye", "pano", "odev", "veli"];
+    function ozet() { // Stüdyo'daki sayfanın kısa özeti (çocuk/veli bilgisi içermez)
+      var a = At();
+      return { kagit: a.kagit, baslik: a.baslik, adSoyad: a.adSoyad, ogeler: a.katmanlar.filter(function (L) { return L.tip !== "foto"; }).map(function (L) {
+        var o = { id: L.id, tur: L.tip === "cizim" ? "resim" : L.tip, x: Math.round(L.x), y: Math.round(L.y) };
+        if (L.tip === "yazi") { o.metin = L.metin; o.boy = L.boy; o.renk = L.renk; o.mod = L.mod; }
+        else if (L.tip === "cizim") { o.ad = L.ad; o.boy = Math.round(L.w); o.gorunum = L.mod; }
+        else { o.sekil = L.sekil; o.w = Math.round(L.w); o.h = Math.round(L.h); o.dolgu = L.dolgu; }
+        return o; }) };
+    }
+    function ogeEkle(o) {
+      var t = o.tur;
+      if (t === "resim") { var ad = KUT[o.ad] ? o.ad : null; if (!ad) return "resim yok: " + o.ad; var b = +o.boy || 80;
+        return katmanEkle({ tip: "cizim", ad: ad, x: +o.x || 105, y: +o.y || 150, w: b, h: b, mod: o.gorunum === "cizgi" || o.gorunum === "kesik" ? o.gorunum : "renkli", don: 0 }, true).id; }
+      if (t === "yazi") return katmanEkle(Object.assign({ tip: "yazi", font: "fredoka", mod: "renkli", kenarK: 0, renk: "#37474f", hiza: "orta", don: 0 }, { metin: String(o.metin || ""), x: +o.x || 105, y: +o.y || 40, boy: +o.boy || 8, renk: o.renk || "#37474f", font: o.font || "fredoka", mod: o.mod === "cizgi" || o.mod === "kesik" ? o.mod : "renkli" },
+        o.gokkusagi ? { dolgu: "gokkusagi", kenarK: o.boy * 0.08, kenarR: "#ffffff", kenar2K: 0.6, kenar2R: "#37474f", golge: true } : {}), true).id;
+      if (t === "sekil") return katmanEkle({ tip: "sekil", sekil: SEKIL_TUR[o.sekil] ? o.sekil : "kart", kose: 5, x: +o.x || 105, y: +o.y || 150, w: +o.w || 40, h: +o.h || 40, don: 0, dolgu: o.dolgu || "#ffffff", dolgu2: "", saydam: 100, kenarR: o.kenar || "#37474f", kenarK: o.kenarKalinlik != null ? +o.kenarKalinlik : 0.8, kenarStil: o.kesik ? "kesik" : "duz" }, true).id;
+      return "bilinmeyen tür";
+    }
+    var ARACLAR_AS = [
+      { name: "hazir_sayfa", description: "Programdaki hazır sayfalardan birini açar. konu: " + KONULAR.map(function (K) { return K.id + " (" + K.ad + ")"; }).join(", ") + ", ya da elifba. sayfa: konular için " + SAYFA_TUR.join(", ") + "; elifba için gorev (3 görevli), buyuk (büyük harf boyama), calisma. eylem: goster (Konular ekranında gösterir), duzenle (Stüdyo'da açar, sonra değiştirilebilir), pdf (PDF indirir).",
+        inputSchema: { type: "object", properties: { konu: { type: "string" }, sayfa: { type: "string" }, harf: { type: "string", description: "elifba için Arap harfi, ör. ب" }, eylem: { type: "string", enum: ["goster", "duzenle", "pdf"] } }, required: ["konu", "eylem"] },
+        execute: function (g) {
+          if (g.konu === "elifba") {
+            var hf = HARF_ELIF.indexOf(g.harf) >= 0 ? g.harf : (HARF_ELIF[ELIF_AD.map(trKucuk).indexOf(trKucuk(g.harf || ""))] || "ا");
+            S.konular.secili = "elifba"; S.konular.harf = hf; sakla(); gorunumAc("v-konular");
+            var l = elifbaSayfalari(hf), P = l[{ gorev: 0, buyuk: 1, calisma: 2 }[g.sayfa] || 0];
+            if (g.eylem === "duzenle") { gorunumAc("v-atolye"); sablonAc(P.sb); } else if (g.eylem === "pdf") { knSecPdf = "ElifBa_" + P.ad; pdfIndirSayfalar([knTuval(P.sb)]); }
+            return "tamam: " + P.ad;
+          }
+          var K = KONULAR.filter(function (x) { return x.id === g.konu; })[0]; if (!K) return "konu bulunamadı";
+          S.konular.secili = K.id; sakla(); gorunumAc("v-konular");
+          var P2 = KN_SAYFA.filter(function (x) { return x.id === g.sayfa; })[0];
+          if (!P2) return "konu açıldı: " + K.ad;
+          var sb = knSablon(K, P2);
+          if (g.eylem === "duzenle") { gorunumAc("v-atolye"); var a = At(), v = sablonVerisi(sb, {}); a.katmanlar = v.katmanlar.map(function (L) { var y = JSON.parse(JSON.stringify(L)); y.id = yeniId(); return y; }); a.boya = []; Object.assign(a, v.sayfa); a.kagit = v.kagit; a.arac = "sec"; sec([]); durumKaydet(); ciz(); }
+          else if (g.eylem === "pdf") { knSecPdf = K.ad + "_" + P2.ad; pdfIndirSayfalar([knTuval(sb)]); }
+          return "tamam: " + K.ad + " · " + P2.ad;
+        } },
+      { name: "sayfa_kur", description: "Etkinlik Stüdyosu'nda YENİ bir sayfa kurar (eski sayfanın yerine geçer; Geri Al ile dönülür). Ölçüler mm: A4 dikey 210×297, yatay 297×210. x,y öğenin ORTASI. Resim adları: " + Object.keys(KUT).filter(function (k) { return !KUT[k].d; }).join(", ") + ". Şekiller: kart, daire, kare, yildiz, kalp, bulut, balon (konuşma balonu), ucgen, kubbe, kemer, hilal, ok, damla, cizgi. Yazı fontları: fredoka, baloo (Arapça da), andika (okuma-yazma), lilita, patrick, amiri (Arapça). Yazı mod: renkli, cizgi (içi boş, boyamalık), kesik (üzerinden geçmelik). Resim gorunum: renkli (3D), cizgi (boyama), kesik.",
+        inputSchema: { type: "object", properties: { kagit: { type: "string", enum: ["a4d", "a4y"] }, baslik: { type: "string" }, adSoyad: { type: "boolean" }, cerceve: { type: "boolean" }, zemin: { type: "string" },
+          ogeler: { type: "array", items: { type: "object", properties: { tur: { type: "string", enum: ["resim", "yazi", "sekil"] }, ad: { type: "string" }, metin: { type: "string" }, sekil: { type: "string" }, x: { type: "number" }, y: { type: "number" }, boy: { type: "number" }, w: { type: "number" }, h: { type: "number" }, renk: { type: "string" }, dolgu: { type: "string" }, kenar: { type: "string" }, kesik: { type: "boolean" }, font: { type: "string" }, mod: { type: "string" }, gorunum: { type: "string" }, gokkusagi: { type: "boolean" } }, required: ["tur"] } } }, required: ["ogeler"] },
+        execute: function (g) {
+          gorunumAc("v-atolye"); var a = At(); a.katmanlar = []; a.boya = []; a.arac = "sec";
+          sayfa(a, { kagit: g.kagit === "a4y" ? "a4y" : "a4d", adSoyad: !!g.adSoyad, kenar: !!g.cerceve, zemin: g.zemin || "" });
+          if (g.baslik) BASLIK(g.baslik, g.adSoyad ? 32 : 24, g.baslik.length > 20 ? 10 : 14);
+          var n = 0; (g.ogeler || []).forEach(function (o) { var r = ogeEkle(o); if (r && r.indexOf(" ") < 0) n++; });
+          sec([]); durumKaydet(); ciz(); return n + " öğe eklendi";
+        } },
+      { name: "sayfayi_oku", description: "Etkinlik Stüdyosu'ndaki sayfanın öğelerini (id, tür, konum, yazı) verir. Bir şeyi değiştirmeden önce çağır.", inputSchema: { type: "object", properties: {} },
+        execute: function () { return JSON.stringify(ozet()); } },
+      { name: "oge_degistir", description: "Stüdyo'daki bir öğeyi değiştirir: alanlar içinde x, y, boy (yazı boyu ya da resim boyutu), w, h, metin, renk, dolgu, gorunum/mod, font. sil:true öğeyi siler.",
+        inputSchema: { type: "object", properties: { id: { type: "string" }, sil: { type: "boolean" }, alanlar: { type: "object" } }, required: ["id"] },
+        execute: function (g) {
+          var a = At(), L = a.katmanlar.filter(function (k) { return k.id === g.id; })[0]; if (!L) return "öğe bulunamadı";
+          if (g.sil) { a.katmanlar = a.katmanlar.filter(function (k) { return k !== L; }); durumKaydet(); ciz(); return "silindi"; }
+          var f = g.alanlar || {};
+          ["x", "y", "w", "h"].forEach(function (k) { if (f[k] != null) L[k] = +f[k]; });
+          if (f.boy != null) { if (L.tip === "yazi") L.boy = +f.boy; else { L.w = +f.boy; L.h = +f.boy; } }
+          if (f.metin != null && L.tip === "yazi") L.metin = String(f.metin);
+          if (f.renk && L.tip === "yazi") { L.renk = f.renk; delete L.dolgu; }
+          if (f.dolgu && L.tip === "sekil") L.dolgu = f.dolgu;
+          if (f.font && L.tip === "yazi") L.font = f.font;
+          var md = f.gorunum || f.mod; if (md && /^(renkli|cizgi|kesik)$/.test(md)) L.mod = md;
+          durumKaydet(); ciz(); return "değişti";
+        } }
+    ];
+    function talimat() {
+      return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
+        "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. Hazır bir sayfa uyuyorsa hazir_sayfa'yı kullan; uymuyorsa sayfa_kur ile kendin tasarla " +
+        "(4-6 yaş: büyük resimler, az ve büyük yazı, kalın çizgiler; başlık üstte; boyama için resim gorunum 'cizgi'). Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
+        "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+    }
+    function sor() {
+      var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
+      if (dikte && mik.classList.contains("dinliyor")) dikte.stop().catch(function () {});
+      calisiyor = true; $("asYap").disabled = true; cevap.style.display = ""; cevap.textContent = "Düşünüyorum…";
+      var mesajlar = gecmis.slice(-6).concat([{ role: "user", content: (gecmis.length ? "" : talimat() + "\n\n") + "İstek: " + q }]);
+      if (gecmis.length) mesajlar[0] = { role: "user", content: talimat() + "\n\n" + mesajlar[0].content };
+      sample(mesajlar, { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }).then(function (r) {
+        var t = (r && r.text) || "Tamam."; cevap.textContent = t; gecmis.push({ role: "user", content: "İstek: " + q }, { role: "assistant", content: t }); giris.value = ""; giris.dataset.taban = "";
+      }).catch(function (e) {
+        cevap.textContent = e && e.code === "rate_limited" ? "Şu an çok istek var; biraz sonra yeniden deneyin." : e && e.code === "not_granted" ? "Asistan'a izin verilmedi. İzin vermek için sayfayı yenileyip yeniden deneyin." : "Olmadı: " + ((e && e.message) || e);
+      }).then(function () { calisiyor = false; $("asYap").disabled = false; });
+    }
+    $("asYap").onclick = sor;
+    giris.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sor(); } });
+    document.querySelectorAll("#asOrnek button").forEach(function (b) { b.onclick = function () { giris.value = b.textContent; giris.focus(); }; });
+  }
+  asistanBasla(); window.addEventListener("load", asistanBasla); setTimeout(asistanBasla, 1500);
   MOD["v-atolye"] = {
     ciz: ciz, sil: sil,
     sayfalar: function () {
@@ -4661,6 +4797,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v2.3", "ASİSTAN: program Claude'un sayfasından (claude.ai) açılınca en üstte mor '🤖 Asistan'a söyle' kutusu çıkar. Ne istediğinizi yazın ya da 🎤 Konuş'a basıp söyleyin; Asistan hazır sayfayı açar, Stüdyo'da yeni sayfa kurar ya da var olan sayfayı değiştirir ('başlığı büyüt', 'kediyi büyüt'). İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın. Claude sayfasında yazdır düğmesi PDF verir (açıp yazdırırsınız); Drive bağlantısı ve internetten resim arama orada çalışmaz, GitHub adresinde çalışır."],
   ["v2.2", "RESİM KÜTÜPHANESİ YENİLENDİ: 33 resim 3D çizgi film tarzında (kaplumbağa, kedi, köpek, kuş, civciv, tavşan, balık, kelebek, fil, ayı, aslan, kuzu; elma, armut, muz, çilek, kiraz, üzüm, portakal, karpuz; ağaç, lale, papatya, güneş, bulut, gökkuşağı, yıldız; cami, Kur'an ve rahle, hilal ve yıldız, kandil/fener, tesbih ve YENİ seccade). Resimler Figma yapay zekâsıyla bu program için üretildi. 'Renkli' görünümde 3D resim, 'Boyama çizgisi' ve 'Kesik çizgi' görünümlerinde çizgi çizim kullanılır; hazır sayfalar ve şablonlar kendiliğinden yeni resimleri kullanır."],
   ["v2.1", "Konular ekranına ELİF-BA HARFLERİ (29 harf) eklendi: harfi seçince 3 hazır sayfa gelir. YENİ 3 görevli harf sayfası: üstte yüzü olan renkli harf ve konuşma balonu ('Merhaba! Benim adım Be…'), 1) noktalı harfleri birleştir, 2) dairedeki karışık harfler arasından o harfi bul (her seferinde farklı dizilir), 3) büyük harfi ve o sesle başlayan resmi boya (Elma, Balık, Tavşan, Cami, Kedi, Lale, Muz, Fil, Ayı, Yıldız…). Ayrıca büyük harf boyama sayfası ve 3 harflik çalışma sayfası. Şablon galerisine de 'Elif-Ba 3 görevli harf sayfası' eklendi."],
   ["v2.0", "YENİ: ★ KONULAR · HAZIR SAYFALAR (program artık bununla açılır). Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konuları: Değerler (Dua, Şükür ve Özür Dileme · Sevgi ve Merhamet · Saygı · Sorumluluk · Yardımlaşma · Sabır · İyilik · Doğruluk ve Dürüstlük · Adalet) ve Sevgi (Allah'ı · Peygamberimi · Kitabımı · İnsanları · Kâinatı · Dinimi · Dinî Mekânlarımızı · Vatanımı · Bayramlarımızı Seviyorum). Konuyu seçince 6 hazır sayfa gelir: boyama sayfası, doğru mu yanlış mı, hikâye kartları (dinle, çiz, kes), değer panosu (yatay), evde birlikte yapalım (veli ile performans ödevi), veli bilgilendirme mektubu. Her sayfada 🖨 Yazdır, ✎ Düzenle (Etkinlik Stüdyosu'nda açar), ⬇ PDF (Canva'ya da yüklenebilir); Hepsini yazdır / Hepsini PDF. Metinler programın kendi metinleridir; kitaptaki resimler kullanılmadı."],
@@ -4680,7 +4817,7 @@ $("btnKilavuz").onclick = function () {
     "<p>Bilgiler bu bilgisayardaki tarayıcıda saklanır. İnternete yalnız Etkinlik Stüdyosu'nda resim ararken (yalnız arama kelimesi) çıkılır. Bilgisayar değiştirirken <b>Araçlar &gt; Yedek Al</b> ile yedek alın, yeni bilgisayarda <b>Yedek Yükle</b> ile yükleyin; ya da <b>Drive'a Bağla</b> ile işte ve evde aynı veriyle çalışın. Resimler yedeğe ve hafızaya girmez; programı kapatınca resim listeleri boşalır.</p>" +
     "<h4>Drive'a Bağla (işte ve evde aynı veri)</h4><ul><li><b>Araçlar &gt; Drive'a Bağla</b>'ya bir kez basın; açılan pencerede bilgisayarınızdaki Google Drive klasörünü seçin (Linux: <b>~/GoogleDrive</b>, Windows: <b>G:\\Drive'ım</b>) → <b>PROGRAM YEDEKLERİ</b> klasörü → dosya adı <b>ogretmen_veri.json</b> → Kaydet. Diğer bilgisayarda da aynı dosyayı seçin.</li><li>Bundan sonra her değişiklik 1,5 saniye içinde o dosyaya kendiliğinden yazılır; Yedek Al / Yedek Yükle gerekmez. Program açılırken ve pencereye her döndüğünüzde dosyaya bakar; başka bilgisayarda daha yeni kayıt yapıldıysa önce onu yükler ve 'Drive'da daha yeni kayıt vardı, o yüklendi' der. Eski açık bir sekme yeni kaydın üstüne yazamaz.</li><li>Seçilen dosyada kayıt varsa sorulur: <b>Tamam</b> → dosyadaki kayıt yüklenir; <b>İptal</b> → ekrandakiler dosyaya yazılır.</li><li>Düğmenin rengi durumu gösterir: <b>gri</b> bağlı değil · <b>yeşil</b> Drive'a Bağlı (üzerine gelince dosya adı ve son eşitleme saati) · <b>turuncu</b> izin gerekiyor (sayfada bir yere tıklayın, Chrome sorunca 'İzin ver' deyin) · <b>kırmızı</b> yazma hatası (veriler bu bilgisayarda durur).</li><li>Bağlıyken düğmeye basınca başka dosya seçebilir ya da seçme penceresini kapatıp bağlantıyı kesebilirsiniz. Menünün açık/kapalı durumu, yakınlaştırma ve açık sayfa her bilgisayarda ayrı kalır. Drive dosyası Yedek Al dosyasıyla aynı biçimdedir; Yedek Yükle ile de açılır. <b>Verileri Temizle</b> yalnız çalışma alanlarını boşaltır; Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar hem programda hem Drive'daki dosyada kalır. Drive bağlantısı açık kalır, dosya silinmez.</li><li>Yalnız Chrome ve Edge'de çalışır. Fotoğraflar Drive'a gitmez.</li></ul>" +
     "<h4>Ortak düğmeler</h4><ul><li><b>↶ Geri Al / ↷ İleri Al</b>: son değişikliği geri alır / yineler. Klavyede <b>Ctrl+Z</b> ve <b>Ctrl+Y</b>.</li><li><b>Silme</b>: satırları kutucukla ya da resimleri tıklayarak seçin, <b>Delete</b> tuşuna basın ya da kırmızı düğmeyi kullanın. Her silmede onay sorulur.</li><li><b>✖ Temizle</b>: o sayfadaki her şeyi siler (onay sorar; Geri Al ile geri gelir).</li><li><b>⬇ Çıktı ▾</b> menüsü: <b>Önizle</b> (fare tekerleğiyle yakınlaşır), <b>Yazdır</b>, <b>PDF</b>, <b>Word</b>, <b>Excel</b>; o sayfanın belgesine uygun olanlar görünür.</li><li>Menüdeki klasörler kapalı açılır; açtığınız sayfanın klasörü kendiliğinden açılır.</li><li>Sarı alanlar yazılabilir alanlardır; baskıda ve PDF'te sarı görünmez.</li></ul>" +
-    "<h4>★ Konular · Hazır Sayfalar</h4><ul><li>Program bu sayfayla açılır. Solda Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konuları vardır: <b>Değerler</b> ve <b>Sevgi</b>.</li><li>Bir konuya tıklayın; sağda o konunun <b>6 hazır sayfası</b> çıkar: boyama sayfası, doğru mu yanlış mı, hikâye kartları (dinle, çiz, kes), değer panosu (yatay A4), evde birlikte yapalım (veli ile performans ödevi, 'Sayın Veli' yönergeli), veli bilgilendirme mektubu (imza Ayarlar'daki öğretici adından gelir).</li><li><b>🖨 Yazdır</b> sayfayı hemen basar. <b>✎ Düzenle</b> sayfayı Etkinlik Stüdyosu'nda açar; resmi, yazıyı, rengi değiştirebilirsiniz (Stüdyo'daki sayfanın yerine geçer, Geri Al ile dönülür). <b>⬇ PDF</b> indirir; bu PDF'i Canva'ya yükleyip orada da düzenleyebilirsiniz.</li><li>En altta <b>Elif-Ba harfleri</b>: 29 harften birini seçin; 3 görevli harf sayfası (yüzlü harf ve konuşma balonu, noktalı harfleri birleştir, dairede harfi bul, büyük harfi ve resmi boya), büyük harf boyama ve harf çalışma sayfası gelir.</li><li>Üstteki <b>Hepsini yazdır</b> (pano hariç) ve <b>Hepsini PDF</b> bütün sayfaları birden verir.</li></ul>" + "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'. <b>Taşırmadan boyama</b>: kalem, fırça ve fosforluda <b>Serbest</b> / <b>🔒 Sadece içini</b> (boyamaya hangi alanın içinde başlarsanız boya o alanda kalır) / <b>🔒 Sadece dışını</b> (resim, harf ve şekillerin içine girmez). Her boyama hareketi ayrı adımdır; <b>Geri Al</b> en fazla 50 adım geri gider ve seçili aracı değiştirmez.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e ve Wikimedia Commons'a gönderilir (sık kullanılan Türkçe kelimeler İngilizce aranır), resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
+    "<h4>🤖 Asistan (Claude sayfasında)</h4><ul><li>Programı Claude'un sayfasından açtığınızda en üstte <b>Asistan'a söyle</b> kutusu çıkar (GitHub adresinde görünmez).</li><li>Ne istediğinizi yazıp <b>Yap ➜</b>'ya basın ya da <b>🎤 Konuş</b> ile söyleyin. Ör. 'Sabır konusunun boyama sayfasını aç', 'Be harfinin 3 görevli sayfasını Stüdyo'da aç', 'Kedili bir boyama sayfası yap', 'Başlığı büyüt'.</li><li>Asistan yalnız programın içinde iş yapar. Yazdığınız istek Claude'a gider; <b>çocuk ve veli adı yazmayın</b>. Yanlış bir şey yaparsa <b>Geri Al</b>.</li><li>Claude sayfasında <b>Yazdır</b> PDF verir; PDF'i açıp yazdırın. Drive'a Bağla ve internetten resim arama yalnız GitHub adresinde çalışır.</li></ul>" + "<h4>★ Konular · Hazır Sayfalar</h4><ul><li>Program bu sayfayla açılır. Solda Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konuları vardır: <b>Değerler</b> ve <b>Sevgi</b>.</li><li>Bir konuya tıklayın; sağda o konunun <b>6 hazır sayfası</b> çıkar: boyama sayfası, doğru mu yanlış mı, hikâye kartları (dinle, çiz, kes), değer panosu (yatay A4), evde birlikte yapalım (veli ile performans ödevi, 'Sayın Veli' yönergeli), veli bilgilendirme mektubu (imza Ayarlar'daki öğretici adından gelir).</li><li><b>🖨 Yazdır</b> sayfayı hemen basar. <b>✎ Düzenle</b> sayfayı Etkinlik Stüdyosu'nda açar; resmi, yazıyı, rengi değiştirebilirsiniz (Stüdyo'daki sayfanın yerine geçer, Geri Al ile dönülür). <b>⬇ PDF</b> indirir; bu PDF'i Canva'ya yükleyip orada da düzenleyebilirsiniz.</li><li>En altta <b>Elif-Ba harfleri</b>: 29 harften birini seçin; 3 görevli harf sayfası (yüzlü harf ve konuşma balonu, noktalı harfleri birleştir, dairede harfi bul, büyük harfi ve resmi boya), büyük harf boyama ve harf çalışma sayfası gelir.</li><li>Üstteki <b>Hepsini yazdır</b> (pano hariç) ve <b>Hepsini PDF</b> bütün sayfaları birden verir.</li></ul>" + "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'. <b>Taşırmadan boyama</b>: kalem, fırça ve fosforluda <b>Serbest</b> / <b>🔒 Sadece içini</b> (boyamaya hangi alanın içinde başlarsanız boya o alanda kalır) / <b>🔒 Sadece dışını</b> (resim, harf ve şekillerin içine girmez). Her boyama hareketi ayrı adımdır; <b>Geri Al</b> en fazla 50 adım geri gider ve seçili aracı değiştirmez.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e ve Wikimedia Commons'a gönderilir (sık kullanılan Türkçe kelimeler İngilizce aranır), resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
     "<h4>2 Çalışma Sayfaları</h4><ul><li>Hepsi tek sayfada: sayfanın üstündeki düğmelerden türü seçin.</li><li>Çizgi çalışması, labirent, sayma, rakam yazma, örüntü, eşleştirme, gölge, farklı olanı bul, şekil boyama sayfalarını kendiliğinden çizer. 🎲 ile yeni bir sayfa üretilir.</li><li>Resimden Boyama: verdiğiniz resmin çizgilerini çıkarıp boyama sayfası yapar.</li></ul>" +
     "<h4>3 Resimden Boyama</h4><ul><li>Bir resmin çizgilerini çıkarıp boyama sayfası yapar. '🗑 Resmi kaldır' resmi kaldırır.</li></ul>" +
     "<h4>4 Resim Yerleştirme</h4><ul><li>Bir sayfaya 1-24 resim yerleştirir ya da resmi A5, A6, 13×18 gibi bir ölçüye getirir.</li><li>'Ölçü tam olsun' işaretli değilse yazıcı payı için hafifçe küçültür; böylece bir A4'e 2 A5 sığar.</li><li>'✖ Temizle' listedeki bütün resimleri siler.</li></ul>" +
