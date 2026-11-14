@@ -853,7 +853,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v2.5";
+var SURUM = "v2.7";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1892,6 +1892,22 @@ var RESIM3D = {"agac":"data:image/webp;base64,UklGRtZ0AABXRUJQVlA4WAoAAAAQAAAAcw
   });
 })();
 var KUT_KAT = [["hayvan", "Hayvanlar"], ["doga", "Çiçek ve Doğa"], ["meyve", "Meyveler"], ["dini", "Kurs (Dinî)"], ["cerceve", "Fotoğraf Çerçeveleri"], ["harf", "Harfler"], ["rakam", "Rakamlar"]];
+/* Asistan'ın ürettiği resimler: tarayıcıda saklanır, kütüphanede "Asistan'ın resimleri" bölümünde çıkar */
+var URETILEN_ANAHTAR = "ogretmenYardimcisi_resimler";
+function uretilenOku() { try { return JSON.parse(localStorage.getItem(URETILEN_ANAHTAR) || "[]"); } catch (e) { return []; } }
+function uretilenKaydet(l) { try { localStorage.setItem(URETILEN_ANAHTAR, JSON.stringify(l)); return true; } catch (e) { return false; } }
+function uretilenKutuphaneye(r) {
+  var im = new Image(); im.onload = function () { document.dispatchEvent(new Event("oyResim")); }; im.src = r.data;
+  KUT[r.id] = { ad: r.ad, kat: "uretilen", p: [], d: null, img: im };
+}
+function uretilenEkle(ad, data) {
+  var l = uretilenOku(), r = { id: "u" + Date.now().toString(36), ad: ad, data: data };
+  l.unshift(r); while (l.length > 40) { var es = l.pop(); delete KUT[es.id]; }
+  while (!uretilenKaydet(l) && l.length > 1) { var es2 = l.pop(); delete KUT[es2.id]; } // yer kalmazsa en eskiler silinir
+  uretilenKutuphaneye(r); return r.id;
+}
+uretilenOku().forEach(uretilenKutuphaneye);
+KUT_KAT.splice(4, 0, ["uretilen", "Asistan'ın resimleri"]);
 var HARF_TR = "A B C Ç D E F G Ğ H I İ J K L M N O Ö P R S Ş T U Ü V Y Z".split(" ");
 var HARF_ELIF = "ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن و ه لا ي".split(" ");
 function kutCiz(x, ad, mod, lw) {
@@ -3631,7 +3647,91 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       if (t === "sekil") return katmanEkle({ tip: "sekil", sekil: SEKIL_TUR[o.sekil] ? o.sekil : "kart", kose: 5, x: +o.x || 105, y: +o.y || 150, w: +o.w || 40, h: +o.h || 40, don: 0, dolgu: o.dolgu || "#ffffff", dolgu2: "", saydam: 100, kenarR: o.kenar || "#37474f", kenarK: o.kenarKalinlik != null ? +o.kenarKalinlik : 0.8, kenarStil: o.kesik ? "kesik" : "duz" }, true).id;
       return "bilinmeyen tür";
     }
+    /* ---- resim üretme: kullanıcının Figma bağlantısı üzerinden (günlük ücretsiz kota) ---- */
+    var mcp = null; claude.use("mcp").then(function (m) { mcp = m; });
+    function figmaYuku(r) { return r && r.payload != null ? r.payload : null; }
+    function figmaHata(e) {
+      var m = String((e && e.message) || e || "");
+      if (/credit|quota|limit/i.test(m)) return "Figma'nın bugünkü ücretsiz resim hakkı doldu; gece 03:00'te yenilenir.";
+      if (e && (e.code === "server_not_connected" || e.code === "needs_reauth")) return "Figma bağlantısı yok ya da süresi dolmuş: claude.ai → Ayarlar → Bağdaştırıcılar → Figma'yı yeniden bağlayın.";
+      if (e && (e.code === "not_in_manifest" || e.code === "approval_required")) return "Figma'yı kullanmaya izin verilmedi. Sayfayı yenileyip izin verin.";
+      return "Resim üretilemedi (" + ((e && e.code) || "hata") + "): " + m.slice(0, 160);
+    }
+    function figmaDosya() {
+      if (S.ayar.figmaDosya) return Promise.resolve(S.ayar.figmaDosya);
+      return mcp.callTool("Figma", "whoami", {}).then(function (r) {
+        var p = figmaYuku(r), w = p && (p.whoami || p), plan = w && w.plans && w.plans[0];
+        if (!plan) throw new Error("Figma planı bulunamadı");
+        return mcp.callTool("Figma", "create_new_file", { fileName: "Öğretmen Yardımcısı - Asistan Resimleri", planKey: plan.key, editorType: "design" });
+      }).then(function (r) { var p = figmaYuku(r), k = p && (p.file_key || p.fileKey); if (!k) throw new Error("Figma dosyası açılamadı"); S.ayar.figmaDosya = k; sakla(); return k; });
+    }
+    function beyaziSil(img) { // 3D resmin beyaz arka planını saydam yapar, kırpar, küçültür
+      var w = img.naturalWidth, hh = img.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = hh;
+      var x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(img, 0, 0);
+      var id = x.getImageData(0, 0, w, hh), d = id.data, arka = new Uint8Array(w * hh), yig = [];
+      function beyaz(i) { return d[i * 4] >= 244 && d[i * 4 + 1] >= 244 && d[i * 4 + 2] >= 244; }
+      for (var i = 0; i < w; i++) { yig.push(i, (hh - 1) * w + i); } for (var j = 0; j < hh; j++) { yig.push(j * w, j * w + w - 1); }
+      while (yig.length) { var q = yig.pop(); if (arka[q] || !beyaz(q)) continue; arka[q] = 1; var qx = q % w; if (qx > 0) yig.push(q - 1); if (qx < w - 1) yig.push(q + 1); if (q >= w) yig.push(q - w); if (q < w * (hh - 1)) yig.push(q + w); }
+      var x1 = w, y1 = hh, x2 = 0, y2 = 0;
+      for (var k = 0; k < w * hh; k++) { if (arka[k]) d[k * 4 + 3] = 0; else { var kx = k % w, ky = (k / w) | 0; if (kx < x1) x1 = kx; if (kx > x2) x2 = kx; if (ky < y1) y1 = ky; if (ky > y2) y2 = ky; } }
+      x.putImageData(id, 0, 0); if (x2 <= x1) { x1 = 0; y1 = 0; x2 = w - 1; y2 = hh - 1; }
+      var bw = x2 - x1 + 1, bh = y2 - y1 + 1, s = Math.min(1, 512 / Math.max(bw, bh)), o = document.createElement("canvas"); o.width = Math.round(bw * s); o.height = Math.round(bh * s);
+      o.getContext("2d").drawImage(c, x1, y1, bw, bh, 0, 0, o.width, o.height);
+      return o.toDataURL("image/webp", 0.82);
+    }
+    function resimYukle(src) { return new Promise(function (ok, no) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { no(new Error("resim açılamadı")); }; im.src = src; }); }
+    function canvaUret(konu, boyama) { // Figma olmazsa yedek: Canva (küçük resim verir, ~200 piksel)
+      var istem = boyama ? "Coloring book page for preschool children: " + konu + ", thick bold black outlines only, white fill, no color, no text, plain white background" : konu + ", cute 3D animated movie style for young children, plain white background, no text";
+      return mcp.callTool("Canva", "generate-image", { prompt: istem, aspectRatio: "SQUARE_1_1", user_intent: "Öğretmen programı için çocuk etkinlik resmi" }).then(function (r) {
+        var p = figmaYuku(r), job = p && p.jobId; if (!job) throw new Error("Canva iş numarası vermedi");
+        var bas = Date.now();
+        function bak() {
+          return new Promise(function (ok) { setTimeout(ok, 7000); }).then(function () { return mcp.callTool("Canva", "get-generate-image-job", { jobId: job, user_intent: "Üretilen resmi almak" }); }).then(function (r2) {
+            var b = (r2.content || []).filter(function (x) { return x.type === "image" && x.data; })[0];
+            if (b) return "data:" + (b.mimeType || "image/png") + ";base64," + b.data;
+            var p2 = figmaYuku(r2); if (p2 && p2.status === "FAILURE") throw new Error("Canva resmi üretemedi");
+            if (Date.now() - bas > 120000) throw new Error("Canva çok uzun sürdü");
+            cevap.textContent = "🎨 Canva'da çiziliyor… (" + Math.round((Date.now() - bas) / 1000) + " sn)"; return bak();
+          });
+        }
+        return bak();
+      }).then(function (src) { return resimYukle(src).then(beyaziSil); });
+    }
+    function resimUret(g) {
+      if (!mcp) return Promise.resolve("Resim üretme bu görünümde kullanılamıyor (Figma bağlantısı yok).");
+      var konu = String(g.konu || "").trim(), ad = String(g.ad || konu).slice(0, 40), boyama = g.tur === "boyama", dosya, kucuk = false;
+      if (!konu) return Promise.resolve("konu (İngilizce tarif) gerekli");
+      cevap.textContent = "🎨 " + ad + " çiziliyor… (15-40 saniye)";
+      return figmaDosya().then(function (fk) {
+        dosya = fk;
+        if (boyama) return mcp.callTool("Figma", "generate_vector_illustration", { fileKey: fk, kind: "illustration", width: 800, height: 800, prompt: "Coloring book page for preschool children: " + konu + ", thick bold black outlines only, pure white fill, no shading, no color, simple large closed shapes, no background, no text" });
+        return mcp.callTool("Figma", "generate_image", { fileKey: fk, width: 1024, height: 1024, prompt: konu + ", in 3D animated movie style (modern children's animation film), soft lighting, cute and friendly, whole subject visible, isolated on a plain pure white background, no text, no letters, no ground shadow" });
+      }).then(function (r) {
+        var p = figmaYuku(r), node = p && p.nodeId; if (!node) throw new Error("Figma resim kimliği vermedi");
+        cevap.textContent = "🎨 " + ad + " hazırlanıyor…";
+        if (boyama) return mcp.callTool("Figma", "use_figma", { fileKey: dosya, description: "Export generated coloring illustration as SVG", code: "const n = await figma.getNodeByIdAsync(" + JSON.stringify(node) + "); return await n.exportAsync({format:'SVG_STRING'});" })
+          .then(function (r2) { var svg = typeof r2.payload === "string" ? r2.payload : ((r2.content || []).filter(function (b) { return b.type === "text"; })[0] || {}).text; if (!svg || svg.indexOf("<svg") < 0) throw new Error("çizim alınamadı"); return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg))); });
+        return mcp.callTool("Figma", "get_screenshot", { fileKey: dosya, nodeId: node, maxDimension: 768, enableBase64Response: true, contentsOnly: true }).then(function (r2) {
+          var b = (r2.content || []).filter(function (x) { return x.type === "image" && x.data; })[0]; if (!b) throw new Error("resim alınamadı");
+          return resimYukle("data:" + (b.mimeType || "image/png") + ";base64," + b.data).then(beyaziSil);
+        });
+      }).catch(function (e) { // Figma olmadı (hak doldu, bağlantı yok…): Canva'yı dene
+        var neden = figmaHata(e); cevap.textContent = "🎨 Figma olmadı (" + neden.slice(0, 60) + "…); Canva'yı deniyorum…"; kucuk = true;
+        return canvaUret(konu, boyama).catch(function (e2) { throw { code: "ikisi", message: neden + " Canva da olmadı: " + ((e2 && e2.message) || (e2 && e2.code) || e2) }; });
+      }).then(function (data) {
+        var kid = uretilenEkle(ad + (boyama ? " (boyama)" : ""), data);
+        if (g.yerlestir !== "ekle") { gorunumAc("v-atolye"); var a = At(); a.katmanlar = []; a.boya = []; a.arac = "sec"; sayfa(a, { kagit: "a4d", adSoyad: !!boyama, kenar: !!boyama }); if (g.baslik) BASLIK(g.baslik, boyama ? 32 : 24, g.baslik.length > 20 ? 10 : 14); }
+        else gorunumAc("v-atolye");
+        var o = sayfaOlcu(), b = g.yerlestir !== "ekle" ? Math.min(o.W - 30, o.H - 80) : 80;
+        katmanEkle({ tip: "cizim", ad: kid, x: o.W / 2, y: g.yerlestir !== "ekle" ? o.H / 2 + 10 : o.H / 2, w: b, h: b, mod: "renkli", don: 0 }, true);
+        sec([]); durumKaydet(); ciz(); kontrolGerek = true;
+        return "resim üretildi ve Stüdyo'ya kondu (kütüphane adı: " + kid + ")" + (kucuk ? ". DİKKAT: Figma'nın günlük hakkı bittiği için Canva'dan küçük (yaklaşık 200 piksel) resim geldi; büyük posterde bulanık olur, bunu öğretmene söyle." : "");
+      }).catch(function (e) { return e && e.code === "ikisi" ? e.message : figmaHata(e); });
+    }
     var ARACLAR_AS = [
+      { name: "resim_uret", description: "Kütüphanede OLMAYAN bir resmi yapay zekâyla üretir (15-40 sn) ve Stüdyo'ya koyar; resim kütüphaneye de eklenir. konu: resmin İNGİLİZCE kısa tarifi (ör. 'a cute baby tiger sitting'). ad: Türkçe adı. tur: renkli (3D) ya da boyama (kalın çizgili). yerlestir: yeni_sayfa (büyük, ortada, baslik ile) ya da ekle (var olan sayfaya).",
+        inputSchema: { type: "object", properties: { konu: { type: "string" }, ad: { type: "string" }, tur: { type: "string", enum: ["renkli", "boyama"] }, yerlestir: { type: "string", enum: ["yeni_sayfa", "ekle"] }, baslik: { type: "string" } }, required: ["konu", "ad", "tur"] },
+        execute: function (g) { return resimUret(g); } },
       { name: "hazir_sayfa", description: "Hazır sayfalardan birini açar (konu ve sayfa kimlikleri talimattaki KATALOG'da). eylem: goster (Konular ekranında), duzenle (Stüdyo'da açar), pdf (PDF indirir).",
         inputSchema: { type: "object", properties: { konu: { type: "string" }, sayfa: { type: "string" }, harf: { type: "string", description: "elifba için Arap harfi, ör. ب" }, eylem: { type: "string", enum: ["goster", "duzenle", "pdf"] } }, required: ["konu", "eylem"] },
         execute: function (g) {
@@ -3710,9 +3810,9 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
         "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
         "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Haftalık Plan, Günlük Akış, Etkinlik Bankası, Veli Notu. Bunlar VAR; 'yapamıyorum' deme. " +
-        "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk ya da robot şablonu; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Ancak hiçbiri uymazsa sayfa_kur. " +
+        "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
-        "Hiçbir hazır sayfa, şablon ya da kütüphane resmi isteğe uymuyorsa kendi kafandan şekillerle resim YAPMA: 'Bunun için hazır resim/şablon yok; Kilo ustasından (Claude) eklemesini isteyebilir' de ve en yakın seçeneği öner. Poster istenirse önce sayfayı (şablon/hazır sayfa) Stüdyo'da kur, sonra postere_gonder (6 A4 = 2x3, 4 A4 = 2x2, 9 A4 = 3x3). Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
+        "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Günlük resim hakkı sınırlı (yaklaşık 30): gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (6 A4 = 2x3, 4 A4 = 2x2, 9 A4 = 3x3). Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
         katalog() + "\n" + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
@@ -4849,6 +4949,8 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v2.7", "Asistan resim üretirken Figma olmazsa (günlük hak bitti, bağlantı yok) Canva'yı dener. Not: Canva programın içine yalnız küçük resim (yaklaşık 200 piksel) verebiliyor; küçük kartlarda iyi, büyük posterde bulanık olur."],
+  ["v2.6", "Asistan RESİM ÜRETİYOR: kütüphanede olmayan bir resim istenince (kaplan, araba, zürafa…) Figma bağlantınız üzerinden yapay zekâyla 3D renkli ya da kalın çizgili boyama resmi üretir, Stüdyo'ya koyar; isterseniz poster yapar. Üretilen resimler Stüdyo'da 'Asistan'ın resimleri' bölümünde kalır (en çok 40). Figma'nın ücretsiz hakkı günde yaklaşık 30 resimdir; gece 03:00'te yenilenir."],
   ["v2.5", "Asistan'a GÖZ: Stüdyo'da bir sayfa kurduktan ya da değiştirdikten sonra sayfanın resmine bakar; üst üste binen, taşan, kopuk ya da çok küçük bir şey görürse kendisi düzeltir (birkaç saniye fazladan sürer). Hazır sayfa, şablon ya da kütüphane resmi yoksa kendi kafasından şekillerle resim çizmez, söyler. Asistan'ın iç ayarları düzeltildi (araç açıklamaları kısaltıldı)."],
   ["v2.4", "Asistan güçlendirildi: hazır şablonları açabiliyor (robot, boyama, harf, rakam, Elif-Ba, panolar…), Stüdyo sayfasını POSTER YAP'a gönderip 4/6/9 A4'e bölebiliyor; basit şekillerden kendi kafasına göre resim çizmek yerine önce hazır sayfa ve şablonları kullanıyor. Yeni şablon: Büyük robot (tam sayfa, renkli ya da boyama)."],
   ["v2.3", "ASİSTAN: program Claude'un sayfasından (claude.ai) açılınca en üstte mor '🤖 Asistan'a söyle' kutusu çıkar. Ne istediğinizi yazın ya da 🎤 Konuş'a basıp söyleyin; Asistan hazır sayfayı açar, Stüdyo'da yeni sayfa kurar ya da var olan sayfayı değiştirir ('başlığı büyüt', 'kediyi büyüt'). İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın. Claude sayfasında yazdır düğmesi PDF verir (açıp yazdırırsınız); Drive bağlantısı ve internetten resim arama orada çalışmaz, GitHub adresinde çalışır."],
