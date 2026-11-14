@@ -3713,7 +3713,9 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     }
     function figmaDosya() { // v3.9: bağlı Figma hesabı değişirse (ör. öğretmen/Education hesabı) yeni dosya açar, eski "hak bitti" kaydını siler
       return mcp.callTool("Figma", "whoami", {}).then(function (r) {
-        var p = figmaYuku(r), w = (p && (p.whoami || p)) || {}, kim = String(w.email || w.id || w.handle || "");
+        var p = figmaYuku(r), w = (p && (p.whoami || p)) || {}, kim = String(w.email || w.id || w.handle || ""), hs = 5381;
+        for (var hi = 0; hi < kim.length; hi++) hs = ((hs * 33) ^ kim.charCodeAt(hi)) >>> 0;
+        kim = kim ? "h" + hs.toString(36) : ""; // e-posta saklanmaz, yalnız ondan türeyen kısa bir iz (hesap değişti mi diye)
         if (kim && S.ayar.figmaKim !== kim) { if (S.ayar.figmaKim) { S.ayar.figmaDosya = ""; S.ayar.figmaBitti = ""; } S.ayar.figmaKim = kim; sakla(); }
         if (S.ayar.figmaBitti && Date.now() < Date.parse(S.ayar.figmaBitti)) throw { code: "hak", message: "credits (bitti)" };
         if (S.ayar.figmaDosya) return S.ayar.figmaDosya;
