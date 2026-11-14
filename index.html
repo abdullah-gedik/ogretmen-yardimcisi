@@ -326,6 +326,25 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .kn-kart img{width:100%;height:240px;object-fit:contain;background:#f4f6f8;border-radius:6px}
 .kn-ad{font-weight:700;font-size:14px;color:#22313f}.kn-dug{display:flex;gap:5px;flex-wrap:wrap}
 @media(max-width:800px){.kn-uc{grid-template-columns:1fr}}
+/* Menüyü gizle / göster (SGK e-Bildirge programındaki gibi): dar şeritte yalnız simgeler, düğme ters döner */
+.ag-daralt .ic{width:17px;height:17px;flex:none;color:inherit;transition:transform .15s}
+.ag-daralt:hover{background:#e3ebf5;border-color:#9fb1c6}
+@media screen and (min-width:801px){
+  html.agac-dar{--agacGen:54px}
+  html.agac-dar .agac{padding:8px 5px 14px}
+  html.agac-dar .ag-ust{justify-content:center}
+  html.agac-dar .ag-daralt{margin:0;width:38px;height:30px}
+  html.agac-dar .ag-daralt .ic{transform:scaleX(-1)}
+  html.agac-dar .ag-bas{justify-content:center;gap:0;min-height:30px;padding:0;margin:2px 0}
+  html.agac-dar .ag-bas .ag-kl{width:21px;height:21px;flex:0 0 21px}
+  html.agac-dar .ag-klasor{padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid #dfe6ee}
+  html.agac-dar .ag-klasor:last-child{border-bottom:none}
+  html.agac-dar .agac .ag-tek{padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid #dfe6ee}
+  html.agac-dar .agac .tab{justify-content:center;gap:0;min-height:34px;padding:0;margin:2px 0}
+  html.agac-dar .agac .tab .ic{width:19px;height:19px;flex:0 0 19px}
+  html.agac-dar .agac .ag-is{justify-content:center;gap:0;min-height:28px;padding:0}
+  html.agac-dar .agac .ag-is .ic{width:15px;height:15px;flex:0 0 15px}
+}
 /* ---------- TELEFON ---------- */
 .mobMenu,.mobPerde{display:none}
 @media (max-width:800px){
@@ -887,7 +906,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.1";
+var SURUM = "v3.2";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -5010,6 +5029,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.2", "Menüyü gizle / göster düğmesi (arama kutusunun sağındaki ≡) SGK e-Bildirge programındaki gibi yapıldı: basınca menü ince bir şeride iner, yalnız simgeler kalır (adları fare üstündeyken görünür), düğme ters döner; yeniden basınca açılır. Seçim hatırlanır. Telefonda menü ☰ ile açılıp kapanır."],
   ["v3.1", "TELEFON GÖRÜNÜMÜ: dar ekranda menü sol üstteki ☰ düğmesinin arkasına gizlenir (bir bölüme dokununca kapanır); Asistan kutusu, Konular (yatay kaydırılan konu düğmeleri, ikişerli sayfa kartları) ve Etkinlik Stüdyosu (önce sayfa, altında araçlar) telefona sığar."],
   ["v3.0", "GitHub adresinde en üste mor '🤖 Asistan'a söylemek için tıklayın' düğmesi eklendi; Asistan'ın çalıştığı Claude sayfasını açar."],
   ["v2.9", "Asistan'a SERBEST EL: hazır düğmesi olmayan işleri de programın içinde kendisi kod yazarak yapar (özel düzenler, toplu değişiklikler, plana ya da veli notuna yazı, birden çok sayfa…). Her işten önce otomatik yedek alınır; beğenmezseniz Geri Al. Geçmiş kayıtlarınızı, etkinlik bankasını ve ayarları silmesi engellenmiştir."],
