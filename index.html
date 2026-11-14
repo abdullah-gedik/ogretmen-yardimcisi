@@ -909,7 +909,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.3";
+var SURUM = "v3.4";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3764,7 +3764,9 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       var konu = String(g.konu || "").trim(), ad = String(g.ad || konu).slice(0, 40), boyama = g.tur === "boyama", dosya, kucuk = false;
       if (!konu) return Promise.resolve("konu (İngilizce tarif) gerekli");
       cevap.textContent = "🎨 " + ad + " çiziliyor… (15-40 saniye)";
-      return figmaDosya().then(function (fk) {
+      var bugunUTC = new Date().toISOString().slice(0, 10); // Figma hakkı her gün 00:00 UTC'de (TR 03:00) yenilenir
+      var figmaYol = S.ayar.figmaBitti === bugunUTC ? Promise.reject({ code: "hak", message: "credits (bugün bitti)" }) : figmaDosya();
+      return figmaYol.then(function (fk) {
         dosya = fk;
         if (boyama) return mcp.callTool("Figma", "generate_vector_illustration", { fileKey: fk, kind: "illustration", width: 800, height: 800, prompt: "Coloring book page for preschool children: " + konu + ", thick bold black outlines only, pure white fill, no shading, no color, simple large closed shapes, no background, no text" });
         return mcp.callTool("Figma", "generate_image", { fileKey: fk, width: 1024, height: 1024, prompt: konu + ", in 3D animated movie style (modern children's animation film), soft lighting, cute and friendly, whole subject visible, isolated on a plain pure white background, no text, no letters, no ground shadow" });
@@ -3778,7 +3780,8 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           return resimYukle("data:" + (b.mimeType || "image/png") + ";base64," + b.data).then(beyaziSil);
         });
       }).catch(function (e) { // Figma olmadı (hak doldu, bağlantı yok…): Canva'yı dene
-        var neden = figmaHata(e); cevap.textContent = "🎨 Figma olmadı (" + neden.slice(0, 60) + "…); Canva'yı deniyorum…"; kucuk = true;
+        var neden = figmaHata(e); if (/credit|quota|limit/i.test(String((e && e.message) || ""))) { S.ayar.figmaBitti = bugunUTC; sakla(); }
+        cevap.textContent = "🎨 Figma'nın bugünkü hakkı bitti; Canva'da çiziliyor (1-2 dakika sürer)…"; kucuk = true;
         return canvaUret(konu, boyama).catch(function (e2) { throw { code: "ikisi", message: neden + " Canva da olmadı: " + ((e2 && e2.message) || (e2 && e2.code) || e2) }; });
       }).then(function (data) {
         var kid = uretilenEkle(ad + (boyama ? " (boyama)" : ""), data);
@@ -3924,7 +3927,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         if (!b) return;
         var istek = talimat() + "\n\nÖğretmenin isteği: " + q + "\nSenin cevabın: " + ilk + "\n\nEkteki resim, Stüdyo'da şu an duran sayfa (A4). Bir öğretmen gözüyle bak: üst üste binen ya da sayfadan taşan öğe, kopuk/orantısız parça, okunmayan ya da çok küçük yazı, boş kalmış büyük alan, isteğe uymayan bir şey var mı? " +
           "Varsa önce sayfayi_oku, sonra oge_degistir ile düzelt. Yoksa hiçbir şeye dokunma. En sonda tek kısa cümle yaz: ne düzelttin ya da 'Kontrol ettim, sayfa düzgün.'";
-        return sample(istek, { images: [b], tools: ARACLAR_AS.filter(function (t) { return t.name === "sayfayi_oku" || t.name === "oge_degistir"; }), modelTier: "default", cache: false }).then(function (r2) {
+        return sample(istek, { images: [b], tools: ARACLAR_AS.filter(function (t) { return t.name === "sayfayi_oku" || t.name === "oge_degistir"; }), modelTier: "quick", cache: false }).then(function (r2) {
           cevap.textContent = ilk + "\n\n👀 " + ((r2 && r2.text) || "Kontrol ettim.").trim();
         }).catch(function () { cevap.textContent = ilk; });
       });
@@ -5034,6 +5037,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.4", "Asistan hızlandı: Figma'nın günlük hakkı bittiyse o gün bir daha denemeden doğrudan Canva'ya geçer; sayfayı gözden geçirme adımı daha hızlı modelle yapılır. Not: Canva bir resmi 1-2 dakikada çizer; Figma (her gece 03:00'te yenilenir) 15-30 saniyede çizer."],
   ["v3.3", "Asistan kutusundaki yeşil robot kaldırıldı; Claude sayfasında Asistan'ın yerinde kendi seçtiğiniz resim, GitHub adresinde sade ✨ simgesi görünür."],
   ["v3.2", "Menüyü gizle / göster düğmesi (arama kutusunun sağındaki ≡) SGK e-Bildirge programındaki gibi yapıldı: basınca menü ince bir şeride iner, yalnız simgeler kalır (adları fare üstündeyken görünür), düğme ters döner; yeniden basınca açılır. Seçim hatırlanır. Telefonda menü ☰ ile açılıp kapanır."],
   ["v3.1", "TELEFON GÖRÜNÜMÜ: dar ekranda menü sol üstteki ☰ düğmesinin arkasına gizlenir (bir bölüme dokununca kapanır); Asistan kutusu, Konular (yatay kaydırılan konu düğmeleri, ikişerli sayfa kartları) ve Etkinlik Stüdyosu (önce sayfa, altında araçlar) telefona sığar."],
