@@ -302,6 +302,16 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .at-araclar>button:not(.d){padding:5px 9px;border:1.5px solid #d5dde6;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:12.5px}
 .at-araclar>button.secili:not(.at-renk){background:#1565c0;color:#fff;border-color:#1565c0}
 .at-araclar .at-renk{width:24px;height:24px}
+.kn-uc{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
+.kn-grup{font-weight:700;color:#5d6b7a;font-size:12px;margin:10px 2px 4px;text-transform:uppercase;letter-spacing:.3px}
+.kn-konu{display:block;width:100%;text-align:left;border:1px solid #e1e7ee;border-left:5px solid var(--kr);background:#fff;border-radius:8px;padding:7px 10px;margin:0 0 5px;font:inherit;font-size:14px;cursor:pointer;color:#22313f}
+.kn-konu:hover{background:#f5f8fb}.kn-konu.secili{background:var(--kr);color:#fff;font-weight:700}
+.kn-ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.kn-ust h2{margin:0;font-size:22px}
+.kn-sayfalar{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.kn-kart{border:1px solid #e1e7ee;border-radius:10px;background:#fff;padding:8px;display:flex;flex-direction:column;gap:6px}
+.kn-kart img{width:100%;height:240px;object-fit:contain;background:#f4f6f8;border-radius:6px}
+.kn-ad{font-weight:700;font-size:14px;color:#22313f}.kn-dug{display:flex;gap:5px;flex-wrap:wrap}
+@media(max-width:800px){.kn-uc{grid-template-columns:1fr}}
 .at-tasma{display:inline-flex;border:1px solid #b0bcc8;border-radius:8px;overflow:hidden;margin-left:8px}
 .at-tasma button{border:0;border-radius:0;background:#fff;padding:5px 9px;font:inherit;font-size:13px;cursor:pointer;color:#1a3550}
 .at-tasma button+button{border-left:1px solid #b0bcc8}
@@ -382,6 +392,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
     <li class="ag-klasor ag-sari" data-k="tasarim">
       <div class="ag-bas" title="Etkinlik Hazırla"><span class="ag-kutu"></span><svg class="ag-kl kapaliyken"><use href="#i-klasor"/></svg><svg class="ag-kl acikken"><use href="#i-klasorAcik"/></svg><span class="ag-ad">Etkinlik Hazırla</span></div>
       <ul>
+        <li><div class="tab" data-view="v-konular" title="Konular · Hazır Sayfalar"><span class="no">★</span><svg class="ic"><use href="#i-kitap"/></svg><span class="ag-ad">Konular · Hazır Sayfalar</span></div></li>
         <li><div class="tab" data-view="v-atolye" title="Etkinlik Stüdyosu"><span class="no">1</span><svg class="ic"><use href="#i-firca"/></svg><span class="ag-ad">Etkinlik Stüdyosu</span></div></li>
         <li><div class="tab" data-view="v-calisma" title="Çalışma Sayfaları"><span class="no">2</span><svg class="ic"><use href="#i-kalem"/></svg><span class="ag-ad">Çalışma Sayfaları</span></div></li>
         <li><div class="tab" data-view="v-boyama" title="Resimden Boyama"><span class="no">3</span><svg class="ic"><use href="#i-boya"/></svg><span class="ag-ad">Resimden Boyama</span></div></li>
@@ -490,6 +501,22 @@ table.tb td.ort,table.tb th.ort{text-align:center}
       </div>
     </div>
     <div class="kart"><h3 id="poOzet">Önizleme</h3><div id="poBilgi"></div><div class="onSayfalar" id="poOnizleme"></div></div>
+  </div>
+</section>
+
+<!-- ================= ★ KONULAR · HAZIR SAYFALAR ================= -->
+<section class="view" id="v-konular">
+  <div class="sayfaBas" data-no="★" data-ad="Konular · Hazır Sayfalar" data-araclar="yazdir,pdf"></div>
+  <div class="kn-uc">
+    <div class="kart kn-sol"><div class="ipucu" style="margin:0 0 6px">Bir konu seçin; o konunun hazır sayfaları sağda çıkar.</div><div id="knListe"></div></div>
+    <div class="kart kn-sag">
+      <div class="kn-ust"><h2 id="knBaslik">Konu</h2><span class="bosluk" style="flex:1"></span>
+        <button type="button" class="d d-cikti d-kucuk" id="knHepsiYazdir" title="Panodan başka bütün sayfaları yazdır">🖨 Hepsini yazdır</button>
+        <button type="button" class="d d-onizle d-kucuk" id="knHepsiPdf" title="Bütün sayfaları tek PDF olarak indir">⬇ Hepsini PDF</button>
+        <button type="button" class="d d-onizle d-kucuk" id="knCanva" title="PDF'i Canva'da düzenlemek">Canva'da düzenlemek?</button></div>
+      <div class="ipucu" style="margin:2px 0 10px">Sayfalar hazırdır: <b>🖨 Yazdır</b> ile hemen basın. Değiştirmek isterseniz <b>✎ Düzenle</b> sayfayı Etkinlik Stüdyosu'nda açar; resmi, yazıyı, rengi değiştirebilirsiniz.</div>
+      <div id="knSayfalar" class="kn-sayfalar"></div>
+    </div>
   </div>
 </section>
 
@@ -807,7 +834,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v1.9";
+var SURUM = "v2.0";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -841,7 +868,7 @@ var VARSAYILAN = function () {
   };
 };
 var S = VARSAYILAN();
-var UI = { view: "v-atolye", tur: "cizgi", klasor: {}, dar: false, zoom: 1 };
+var UI = { view: "v-konular", tur: "cizgi", klasor: {}, dar: false, zoom: 1 };
 var IMG = {};            // resim deposu: id -> {img, w, h, ad}
 var MOD = {};            // görünüm -> modül
 var ANAHTAR = "ogretmenYardimcisi_v1", UIANAHTAR = "ogretmenYardimcisi_ui";
@@ -3151,6 +3178,272 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
   $("atRakam").addEventListener("input", function () { At().rakam = this.value; sakla(); });
   document.querySelectorAll("#atSablonlar [data-s]").forEach(function (b) { b.onclick = function () { var s = SABLON[b.dataset.s]; sablon(s[0], s[1]); }; });
   yuklemeBagla("atFotoSec", "atFoto", "atBirak", fotoEkle); YAPISTIR["v-atolye"] = fotoEkle;
+  /* ---- KONULAR: Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konu başlıkları; metinler programın kendi metinleridir ---- */
+  var KONULAR = [
+    { id: "dua", grup: "Değerler", ad: "Dua, Şükür ve Özür Dileme", resim: "gunes", renk: "#f9a825",
+      mesaj: "Allah'a dua ederim.\nNimetler için şükrederim.\nHata yapınca özür dilerim.",
+      soz: ["Yemeğe Bismillah ile başlarım.", "Yemekten sonra Elhamdülillah derim.", "Hata yapınca özür dilerim."],
+      durum: [["Yemeğe Bismillah diyerek başlamak", 1], ["Arkadaşına çarpınca özür dilemek", 1], ["Yemeği beğenmeyip tabağı itmek", 0], ["Hediye alınca teşekkür etmemek", 0]],
+      hikaye: ["Ali parkta koşarken\narkadaşına çarptı.", "Arkadaşı düşüp\nüzüldü.", "Ali hemen yanına gitti:\n\"Özür dilerim\" dedi.", "İki arkadaş barıştı,\nbirlikte oynadılar."],
+      odev: "Bu hafta akşam yemeğinden önce çocuğunuzla birlikte \"Bismillah\", yemekten sonra \"Elhamdülillah\" deyin. Gün içinde şükrettiğiniz üç güzel şeyi konuşup çocuğunuzun aşağıdaki kutuya resmini çizmesine yardım edin.",
+      veli: "Bu hafta kursumuzda dua etmeyi, nimetler için şükretmeyi ve hata yapınca özür dilemeyi konuştuk.",
+      sorular: ["Bugün hangi nimetler için şükrettin?", "Birini üzünce ne söylersin?", "Yemeğe başlarken ne deriz?"] },
+    { id: "sevgi", grup: "Değerler", ad: "Sevgi ve Merhamet", resim: "kedi", renk: "#e91e63",
+      mesaj: "Herkesi severim.\nHayvanlara ve bitkilere\nmerhamet ederim.",
+      soz: ["Ailemi ve arkadaşlarımı severim.", "Hayvanlara su ve yem veririm.", "Çiçekleri koparmam, sularım."],
+      durum: [["Sokaktaki kediye su vermek", 1], ["Ağlayan arkadaşına sarılmak", 1], ["Kuşların yuvasını bozmak", 0], ["Çiçekleri koparıp atmak", 0]],
+      hikaye: ["Zeynep bahçede\naç bir kedi gördü.", "Kedi çok\nzayıftı.", "Zeynep annesiyle\nkediye mama verdi.", "Kedi mırladı,\nZeynep çok sevindi."],
+      odev: "Bu hafta çocuğunuzla birlikte bir hayvana ya da bitkiye bakın (kuşlara yem, çiçeğe su vb.). Yaptığınız iyiliğin resmini birlikte kutuya çizin ya da fotoğrafını yapıştırın.",
+      veli: "Bu hafta kursumuzda sevgiyi ve canlılara merhamet etmeyi konuştuk.",
+      sorular: ["Kimleri çok seviyorsun?", "Bir hayvana nasıl yardım edebilirsin?", "Arkadaşın ağlarsa ne yaparsın?"] },
+    { id: "saygi", grup: "Değerler", ad: "Saygı", resim: "papatya", renk: "#7b1fa2",
+      mesaj: "Büyüklerime saygı,\nküçüklerime sevgi\ngösteririm.",
+      soz: ["Büyüklerimi dinlerim.", "Sıramı beklerim.", "Konuşan birinin sözünü kesmem."],
+      durum: [["Büyüklere selam vermek", 1], ["Konuşan arkadaşını dinlemek", 1], ["Sırada öne geçmek", 0], ["Öğretmen konuşurken bağırmak", 0]],
+      hikaye: ["Dedesi eve\nmisafir geldi.", "Ahmet koşup\nselam verdi.", "Dedesine yer verip\nsu getirdi.", "Dedesi Ahmet'e\ndua etti."],
+      odev: "Bu hafta çocuğunuzla bir büyüğünüzü (dede, nine, komşu) ziyaret edin ya da arayın. Çocuğunuzun selam vermesine ve büyüğünü dinlemesine fırsat verin. Ziyaretin resmini birlikte çizin.",
+      veli: "Bu hafta kursumuzda büyüklere saygıyı, küçüklere sevgiyi ve sıra beklemeyi konuştuk.",
+      sorular: ["Büyüklerimizi nasıl selamlarız?", "Sırada beklerken ne yaparız?", "Biri konuşurken ne yaparız?"] },
+    { id: "sorumluluk", grup: "Değerler", ad: "Sorumluluk", resim: "agac", renk: "#2e7d32",
+      mesaj: "Oyuncaklarımı toplarım.\nİşimi kendim yaparım.\nEşyalarıma özen gösteririm.",
+      soz: ["Oyuncaklarımı yerine koyarım.", "Ellerimi kendim yıkarım.", "Çiçeğimi her gün sularım."],
+      durum: [["Oyundan sonra oyuncakları toplamak", 1], ["Çiçeği her gün sulamak", 1], ["Kitabı yerde bırakmak", 0], ["Çöpü yere atmak", 0]],
+      hikaye: ["Emre oyuncaklarıyla\noynadı.", "Oda çok\ndağıldı.", "Emre oyuncakları\ntek tek topladı.", "Oda tertemiz oldu,\nannesi teşekkür etti."],
+      odev: "Bu hafta çocuğunuza her gün yapabileceği küçük bir görev verin (oyuncakları toplamak, sofraya kaşık koymak, çiçek sulamak). Görevini yaptığı her gün kutuya bir yıldız çizin.",
+      veli: "Bu hafta kursumuzda sorumluluk almayı ve eşyalarımıza özen göstermeyi konuştuk.",
+      sorular: ["Evde hangi işleri kendin yapıyorsun?", "Oyunun bitince ne yaparsın?", "Bir çiçeğe nasıl bakılır?"] },
+    { id: "yardim", grup: "Değerler", ad: "Yardımlaşma", resim: "civciv", renk: "#1e88e5",
+      mesaj: "Yardıma ihtiyacı olana\nyardım ederim.\nBirlikte daha güçlüyüz.",
+      soz: ["Anneme sofrayı kurarken yardım ederim.", "Arkadaşımla oyuncağımı paylaşırım.", "Birlikte iş yapmak güzeldir."],
+      durum: [["Düşen arkadaşını kaldırmak", 1], ["Oyuncağını paylaşmak", 1], ["Yardım isteyene gülmek", 0], ["Her şeyi tek başına almak", 0]],
+      hikaye: ["Annesi sofrayı\nkuruyordu.", "Elif kaşıkları\ngetirdi.", "Kardeşi de\nekmekleri koydu.", "Sofra çabucak hazır oldu,\nhep birlikte yediler."],
+      odev: "Bu hafta çocuğunuzla evde bir işi birlikte yapın (sofra kurmak, çamaşır katlamak, alışveriş poşetlerini taşımak). Birlikte yaptığınız işin resmini kutuya çizin.",
+      veli: "Bu hafta kursumuzda yardımlaşmayı ve paylaşmayı konuştuk.",
+      sorular: ["Evde kime yardım ettin?", "Paylaşınca nasıl hissederiz?", "Arkadaşın düşerse ne yaparsın?"] },
+    { id: "sabir", grup: "Değerler", ad: "Sabır", resim: "kaplumbaga", renk: "#00897b",
+      mesaj: "Sıramı beklerim.\nAcele etmem,\nsabırlı olurum.",
+      soz: ["Sıram gelene kadar beklerim.", "Bir işi bitirene kadar uğraşırım.", "Kızınca derin nefes alırım."],
+      durum: [["Salıncak için sırasını beklemek", 1], ["Yapbozu bitirene kadar uğraşmak", 1], ["Sıra gelmeden bağırmak", 0], ["Zor gelince işi bırakıp atmak", 0]],
+      hikaye: ["Selim tohum ekti\nve suladı.", "Ertesi gün baktı,\nhiçbir şey yoktu.", "Selim her gün sabırla\nsuladı ve bekledi.", "Bir sabah tohum\nfiliz verdi!"],
+      odev: "Bu hafta çocuğunuzla bir tohum (fasulye, nohut) ekin. Her gün birlikte sulayın ve bekleyin. Filiz çıkınca resmini kutuya çizin ya da fotoğrafını yapıştırın.",
+      veli: "Bu hafta kursumuzda sabırlı olmayı, sıra beklemeyi ve bir işi bitirene kadar uğraşmayı konuştuk.",
+      sorular: ["Sıra beklemek neden önemli?", "Zor bir işte ne yaparsın?", "Kızınca nasıl sakinleşirsin?"] },
+    { id: "iyilik", grup: "Değerler", ad: "İyilik", resim: "kus", renk: "#43a047",
+      mesaj: "Her gün bir iyilik yaparım.\nGüzel söz söylerim,\nherkese gülümserim.",
+      soz: ["Güzel söz söylemek iyiliktir.", "Gülümsemek iyiliktir.", "Yoldaki taşı kaldırmak iyiliktir."],
+      durum: [["Arkadaşına güzel söz söylemek", 1], ["Yere düşen çöpü çöp kutusuna atmak", 1], ["Arkadaşıyla alay etmek", 0], ["Kardeşinin oyununu bozmak", 0]],
+      hikaye: ["Ayşe yolda bir\ntaş gördü.", "\"Biri takılıp\ndüşebilir\" dedi.", "Taşı alıp kenara\nkoydu.", "İnsanlar rahatça\nyürüdü."],
+      odev: "Bu hafta çocuğunuzla bir \"iyilik takvimi\" yapın: her gün küçük bir iyilik (komşuya selam, kardeşe yardım, güzel söz). Her iyilik için kutuya bir kalp çizin.",
+      veli: "Bu hafta kursumuzda iyilik yapmayı, güzel söz söylemeyi ve gülümsemeyi konuştuk.",
+      sorular: ["Bugün kime iyilik yaptın?", "Hangi sözler insanı sevindirir?", "Yolda bir taş görürsen ne yaparsın?"] },
+    { id: "dogruluk", grup: "Değerler", ad: "Doğruluk ve Dürüstlük", resim: "yildiz", renk: "#3949ab",
+      mesaj: "Her zaman doğruyu söylerim.\nBaşkasının eşyasını\nizinsiz almam.",
+      soz: ["Doğruyu söylerim.", "Hatamı saklamam.", "Bulduğum eşyayı sahibine veririm."],
+      durum: [["Kırdığı bardağı annesine söylemek", 1], ["Bulduğu kalemi sahibine vermek", 1], ["Arkadaşının oyuncağını izinsiz almak", 0], ["Hatasını başkasına yüklemek", 0]],
+      hikaye: ["Can bahçede bir\ncüzdan buldu.", "Cüzdanı alıp\nöğretmenine götürdü.", "Öğretmeni sahibini\nbuldu.", "Sahibi çok sevindi,\nCan'a teşekkür etti."],
+      odev: "Bu hafta çocuğunuzla \"doğru söyleyince ne olur?\" diye konuşun. Bir hatasını doğru söylediğinde onu takdir edin. Konuştuklarınızın resmini birlikte kutuya çizin.",
+      veli: "Bu hafta kursumuzda doğruyu söylemeyi ve başkasının eşyasına izinsiz dokunmamayı konuştuk.",
+      sorular: ["Bir şey kırarsan ne yaparsın?", "Bir eşya bulursan ne yaparsın?", "Doğru söyleyince nasıl hissedersin?"] },
+    { id: "adalet", grup: "Değerler", ad: "Adalet", resim: "karpuz", renk: "#6d4c41",
+      mesaj: "Herkese eşit davranırım.\nPaylaşırken\nhakkı gözetirim.",
+      soz: ["Oyunda herkese sıra veririm.", "Paylaşırken eşit bölerim.", "Kuralları herkes için uygularım."],
+      durum: [["Meyveyi arkadaşlarıyla eşit paylaşmak", 1], ["Oyunda herkese sıra vermek", 1], ["En büyük parçayı hep kendine almak", 0], ["Sadece sevdiği arkadaşına sıra vermek", 0]],
+      hikaye: ["Annesi bir\nkarpuz getirdi.", "Kardeşler\n\"Bana büyük!\" dedi.", "Babası karpuzu\neşit dilimledi.", "Herkes aynı büyüklükte\nyedi, mutlu oldu."],
+      odev: "Bu hafta bir meyveyi (elma, mandalina) çocuğunuzla birlikte aile bireylerine eşit paylaştırın. Kaç parçaya böldüğünüzü kutuya çizin.",
+      veli: "Bu hafta kursumuzda adaleti, eşit paylaşmayı ve herkese sıra vermeyi konuştuk.",
+      sorular: ["Paylaşırken nasıl bölmeliyiz?", "Oyunda sıra nasıl verilir?", "Biri haksızlık yaparsa ne hissederiz?"] },
+    { id: "allah", grup: "Sevgi", ad: "Allah'ı Seviyorum", resim: "gokkusagi", renk: "#00acc1",
+      mesaj: "Beni ve her şeyi\nAllah yarattı.\nAllah'ı çok seviyorum.",
+      soz: ["Güneşi, ayı ve yıldızları Allah yarattı.", "Çiçekleri ve hayvanları Allah yarattı.", "Beni ve ailemi Allah yarattı."],
+      durum: [["Yaratılan güzelliklere bakıp şükretmek", 1], ["Allah'a dua etmek", 1], ["Nimetleri israf etmek", 0], ["Canlılara zarar vermek", 0]],
+      hikaye: ["Sabah güneş\ndoğdu.", "Kuşlar ötmeye\nbaşladı.", "Akşam ay ve\nyıldızlar çıktı.", "Hepsini Allah yarattı,\nşükürler olsun!"],
+      odev: "Bu hafta çocuğunuzla bir yürüyüşe çıkın. Gördüğünüz güzellikleri (ağaç, kuş, bulut, çiçek) sayın ve \"Bunları Allah yarattı\" diyerek konuşun. En sevdiğinin resmini kutuya çizin.",
+      veli: "Bu hafta kursumuzda Allah'ın yarattığı güzellikleri tanıdık ve Allah sevgisini konuştuk.",
+      sorular: ["Allah'ın yarattığı neleri biliyorsun?", "En sevdiğin çiçek hangisi?", "Allah'a nasıl teşekkür ederiz?"] },
+    { id: "peygamber", grup: "Sevgi", ad: "Peygamberimi Seviyorum", resim: "cami", renk: "#2e7d32",
+      mesaj: "Peygamberimiz\nHz. Muhammed'i (s.a.v.)\nçok seviyorum.",
+      soz: ["Peygamberimiz çocukları çok severdi.", "Peygamberimiz herkese güler yüzlüydü.", "Peygamberimiz doğru sözlüydü."],
+      durum: [["Herkese güler yüzlü olmak", 1], ["Doğru sözlü olmak", 1], ["Arkadaşlarına kaba davranmak", 0], ["Yalan söylemek", 0]],
+      hikaye: ["Peygamberimiz yolda\nçocuklarla karşılaştı.", "Çocuklara önce\no selam verdi.", "Onlarla güler yüzle\nkonuştu.", "Çocuklar onu\nçok sevdi."],
+      odev: "Bu hafta çocuğunuzla Peygamberimizin güzel bir davranışını (selam vermek, güler yüz, doğru sözlülük) seçin ve hafta boyunca birlikte uygulayın. Uyguladığınız davranışın resmini kutuya çizin.",
+      veli: "Bu hafta kursumuzda Peygamberimiz Hz. Muhammed'i (s.a.v.) ve güzel ahlakını tanıdık.",
+      sorular: ["Peygamberimizin adı nedir?", "Peygamberimiz çocuklara nasıl davranırdı?", "Onun hangi davranışını yapabilirsin?"] },
+    { id: "kitap", grup: "Sevgi", ad: "Kitabımı Seviyorum", resim: "kuran", renk: "#c62828",
+      mesaj: "Kitabımız\nKur'an-ı Kerim'dir.\nOnu severim, ona özen gösteririm.",
+      soz: ["Kur'an-ı Kerim'i temiz ellerle tutarım.", "Kur'an-ı Kerim'i yüksek bir yere koyarım.", "Kur'an okunurken sessizce dinlerim."],
+      durum: [["Kur'an-ı Kerim'i temiz ellerle tutmak", 1], ["Kur'an okunurken dinlemek", 1], ["Kitabı yere atmak", 0], ["Okunurken gürültü yapmak", 0]],
+      hikaye: ["Hasan kursa\ngeldi.", "Ellerini güzelce\nyıkadı.", "Elif-Ba'sını açıp\nöğretmenini dinledi.", "Sonra kitabını\nrafına özenle koydu."],
+      odev: "Bu hafta evde Kur'an-ı Kerim'in durduğu yeri çocuğunuzla birlikte görün; ona neden özen gösterdiğimizi konuşun. Çocuğunuzun Kur'an'ın kabını süsleyen bir resim çizmesine yardım edin.",
+      veli: "Bu hafta kursumuzda kitabımız Kur'an-ı Kerim'i tanıdık ve ona nasıl özen göstereceğimizi konuştuk.",
+      sorular: ["Kitabımızın adı nedir?", "Kur'an-ı Kerim'i nasıl tutarız?", "Kur'an okunurken ne yaparız?"] },
+    { id: "insan", grup: "Sevgi", ad: "İnsanları Seviyorum", resim: "lale", renk: "#ef6c00",
+      mesaj: "Ailemi, arkadaşlarımı,\nkomşularımı ve\nbütün insanları severim.",
+      soz: ["Ailemi çok severim.", "Komşularıma selam veririm.", "Arkadaşlarımla iyi geçinirim."],
+      durum: [["Komşusuna selam vermek", 1], ["Yeni gelen arkadaşı oyuna çağırmak", 1], ["Arkadaşını oyundan dışlamak", 0], ["Komşunun kapısını tekmelemek", 0]],
+      hikaye: ["Sınıfa yeni bir\narkadaş geldi.", "Kimseyi tanımadığı için\nyalnız oturdu.", "Zehra yanına gidip\n\"Gel oynayalım\" dedi.", "İki iyi arkadaş\noldular."],
+      odev: "Bu hafta çocuğunuzla bir komşunuza küçük bir ikram (kurabiye, meyve) götürün ya da selam verin. Komşunuzun ve sizin resminizi birlikte kutuya çizin.",
+      veli: "Bu hafta kursumuzda ailemizi, komşularımızı ve bütün insanları sevmeyi konuştuk.",
+      sorular: ["Komşularımıza nasıl davranırız?", "Yeni bir arkadaşa ne söylersin?", "Aileni neden seviyorsun?"] },
+    { id: "kainat", grup: "Sevgi", ad: "Kâinatı Seviyorum", resim: "yildiz", renk: "#283593",
+      mesaj: "Güneşi, ayı, yıldızları,\ndenizleri ve dağları\nseviyorum.",
+      soz: ["Doğayı temiz tutarım.", "Suyu boşa akıtmam.", "Ağaçlara ve hayvanlara zarar vermem."],
+      durum: [["Dişini fırçalarken musluğu kapatmak", 1], ["Çöpünü çöp kutusuna atmak", 1], ["Ağacın dalını kırmak", 0], ["Parkta çöp bırakmak", 0]],
+      hikaye: ["Aile pikniğe\ngitti.", "Yemekten sonra çöpler\netrafa dağılmıştı.", "Hepsi birlikte\nçöpleri topladı.", "Yeşil çimenler\ntertemiz kaldı."],
+      odev: "Bu hafta çocuğunuzla akşam gökyüzüne bakın; ayı ve yıldızları birlikte sayın. Evde suyu boşa akıtmamak için birlikte bir kural belirleyin. Gökyüzünün resmini kutuya çizin.",
+      veli: "Bu hafta kursumuzda kâinattaki güzellikleri tanıdık ve doğayı korumayı konuştuk.",
+      sorular: ["Gökyüzünde neler var?", "Suyu nasıl koruruz?", "Parkta çöpümüzü ne yaparız?"] },
+    { id: "din", grup: "Sevgi", ad: "Dinimi Seviyorum", resim: "tesbih", renk: "#5e35b1",
+      mesaj: "Dinim İslam'dır.\nDinimi öğrenir,\nonu çok severim.",
+      soz: ["Dinim İslam'dır.", "Kur'an kursunda dinimi öğrenirim.", "Güzel ahlaklı olmaya çalışırım."],
+      durum: [["Kursta dinini öğrenmek", 1], ["Güzel davranışlar yapmak", 1], ["Dua edenle alay etmek", 0], ["Kötü söz söylemek", 0]],
+      hikaye: ["Yusuf sabah\nerkenden uyandı.", "Kur'an kursuna\nsevinçle geldi.", "Arkadaşlarıyla\ndualar öğrendi.", "Akşam ailesine\nöğrendiklerini anlattı."],
+      odev: "Bu hafta çocuğunuz kursta öğrendiği bir duayı ya da sureyi size okusun. Onu dinleyip takdir edin. Bu anın resmini birlikte kutuya çizin.",
+      veli: "Bu hafta kursumuzda dinimiz İslam'ı ve güzel ahlakı konuştuk.",
+      sorular: ["Dinimizin adı nedir?", "Kursta neler öğreniyorsun?", "Hangi duayı biliyorsun?"] },
+    { id: "mekan", grup: "Sevgi", ad: "Dinî Mekânlarımızı Seviyorum", resim: "cami", renk: "#00796b",
+      mesaj: "Camiler Allah'ın evidir.\nCamiye temiz girer,\nsessiz olurum.",
+      soz: ["Camiye temiz kıyafetle giderim.", "Camide koşmam, bağırmam.", "Ayakkabılarımı düzgünce koyarım."],
+      durum: [["Camiye girerken ayakkabısını düzgünce koymak", 1], ["Camide sessiz olmak", 1], ["Camide koşup bağırmak", 0], ["Halıyı kirletmek", 0]],
+      hikaye: ["Babasıyla camiye\ngittiler.", "Ayakkabılarını\nrafa koydular.", "Sessizce oturup\nezanı dinlediler.", "Çıkarken imama\nselam verdiler."],
+      odev: "Bu hafta çocuğunuzla yakınınızdaki bir camiyi ziyaret edin; kubbe, minare ve mihrabı birlikte gösterin. Gördüğünüz caminin resmini kutuya çizin.",
+      veli: "Bu hafta kursumuzda camilerimizi ve camide nasıl davranacağımızı konuştuk.",
+      sorular: ["Caminin hangi bölümlerini biliyorsun?", "Camide nasıl davranırız?", "Ezan nereden okunur?"] },
+    { id: "vatan", grup: "Sevgi", ad: "Vatanımı Seviyorum", resim: "hilal", renk: "#d32f2f",
+      mesaj: "Vatanımı ve\nbayrağımı\nçok seviyorum.",
+      soz: ["Bayrağımı severim.", "Vatanımın her yerini severim.", "Vatanım için çalışırım."],
+      durum: [["Bayrağa saygı göstermek", 1], ["Parkı ve sokağı temiz tutmak", 1], ["Ortak eşyalara zarar vermek", 0], ["Bayrağı yere atmak", 0]],
+      hikaye: ["Bayram günü sokaklar\nbayraklarla süslendi.", "Mehmet bayrağını\neline aldı.", "Bayrağı yere\ndeğdirmeden taşıdı.", "Hep birlikte\nmarşımızı dinledik."],
+      odev: "Bu hafta çocuğunuzla bayrağımızın renklerini ve hilal ile yıldızı konuşun. Çocuğunuzun kutuya bayrağımızı çizip boyamasına yardım edin.",
+      veli: "Bu hafta kursumuzda vatan ve bayrak sevgisini konuştuk.",
+      sorular: ["Bayrağımızın renkleri neler?", "Bayrağımızda neler var?", "Vatanımızı nasıl koruruz?"] },
+    { id: "bayram", grup: "Sevgi", ad: "Bayramlarımızı Seviyorum", resim: "papatya", renk: "#f57c00",
+      mesaj: "Bayramda büyüklerimin\nelini öper,\nherkesle bayramlaşırım.",
+      soz: ["Bayramda büyüklerimi ziyaret ederim.", "Küs olanlar bayramda barışır.", "Bayramda herkese \"İyi bayramlar\" derim."],
+      durum: [["Bayramda büyüklerin elini öpmek", 1], ["Küs olduğu arkadaşıyla barışmak", 1], ["Bayram şekerini kardeşiyle paylaşmamak", 0], ["Ziyarete gelenlere surat asmak", 0]],
+      hikaye: ["Bayram sabahı\nherkes erken kalktı.", "Yeni kıyafetlerini\ngiydiler.", "Dedesinin elini\nöptüler.", "Şekerlerini kardeşleriyle\npaylaştılar."],
+      odev: "Bayramdan önce çocuğunuzla büyüklerinize gönderilecek küçük bir bayram kartı hazırlayın. Kartın resmini kutuya çizin ya da kartı yapıştırın.",
+      veli: "Bu hafta kursumuzda dinî bayramlarımızı ve bayramlaşmayı konuştuk.",
+      sorular: ["Hangi bayramları biliyorsun?", "Bayramda ne yaparız?", "Bayramda kimleri ziyaret edersin?"] }
+  ];
+  function satirBol(t, n) { // metni ~n harflik satırlara böler
+    var c = [], s = ""; String(t).split(/\s+/).forEach(function (k) { if (!k) return; if (s && (s + " " + k).length > n) { c.push(s); s = k; } else s = s ? s + " " + k : k; }); if (s) c.push(s); return c.join("\n");
+  }
+  var KN_PASTEL = ["#e3f2fd", "#fce4ec", "#e8f5e9", "#fff8e1", "#ede7f6", "#e0f7fa"];
+  function knBuyuk(s) { return s.toLocaleUpperCase("tr"); }
+  var KN_SAYFA = [
+    { id: "boyama", ad: "Boyama sayfası", ikon: "🎨", yap: function (a, K) {
+      sayfa(a, { kagit: "a4d", adSoyad: true, kenar: true, kenarRenk: K.renk });
+      BASLIK(knBuyuk(K.ad), 32, K.ad.length > 20 ? 9.5 : 13);
+      R_(K.resim, 105, 148, 150, "cizgi");
+      S_({ sekil: "kart", kose: 6, x: 105, y: 258, w: 176, h: 34, dolgu: "#ffffff", kenarR: K.renk, kenarK: 0.8, kenarStil: "kesik" });
+      Y_({ metin: K.mesaj, font: "andika", kalin: true, boy: 5.6, x: 105, y: 258, renk: "#37474f" });
+    } },
+    { id: "dogruyanlis", ad: "Doğru mu, yanlış mı?", ikon: "✅", yap: function (a, K) {
+      sayfa(a, { kagit: "a4d", adSoyad: true, kenar: true, kenarRenk: K.renk });
+      BASLIK("DOĞRU MU, YANLIŞ MI?", 32, 12);
+      Y_({ metin: K.ad, font: "baloo", boy: 6.5, x: 105, y: 46, renk: K.renk });
+      Y_({ metin: "Doğru davranışın yanındaki DOĞRU dairesini yeşile,\nyanlış davranışın yanındaki YANLIŞ dairesini kırmızıya boya.", font: "andika", kalin: false, boy: 4.2, x: 105, y: 59, renk: "#546e7a" });
+      [0, 2, 1, 3].forEach(function (di, i) {
+        var y = 92 + i * 47, g = yeniId(), d = K.durum[di];
+        S_({ sekil: "kart", kose: 5, x: 105, y: y, w: 182, h: 40, dolgu: i % 2 ? "#fafafa" : "#ffffff", kenarR: K.renk, kenarK: 0.7, grup: g });
+        S_({ sekil: "daire", x: 24, y: y, w: 10, h: 10, dolgu: K.renk, kenarK: 0, grup: g }); Y_({ metin: String(i + 1), boy: 5.2, x: 24, y: y, renk: "#ffffff", grup: g });
+        Y_({ metin: satirBol(d[0], 24), font: "andika", kalin: true, boy: 5, x: 80, y: y, renk: "#263238", grup: g });
+        [["DOĞRU", "#43a047", 150], ["YANLIŞ", "#e53935", 181]].forEach(function (q) {
+          S_({ sekil: "daire", x: q[2], y: y - 4, w: 20, h: 20, dolgu: "#ffffff", kenarR: q[1], kenarK: 1, kenarStil: "kesik", grup: g });
+          Y_({ metin: q[0], font: "andika", kalin: true, boy: 3.6, x: q[2], y: y + 13, renk: q[1], grup: g });
+        });
+      });
+      Y_({ metin: "Öğretmen okur, çocuk boyar. Cevaplar: 1, 3 doğru · 2, 4 yanlış", font: "andika", kalin: false, boy: 3, x: 105, y: 280, renk: "#9e9e9e" });
+    } },
+    { id: "hikaye", ad: "Hikâye kartları (dinle, çiz)", ikon: "📖", yap: function (a, K) {
+      sayfa(a, { kagit: "a4d", adSoyad: true, kenar: true, kenarRenk: K.renk });
+      BASLIK("HİKÂYE KARTLARI", 32, 12);
+      Y_({ metin: K.ad, font: "baloo", boy: 6.5, x: 105, y: 46, renk: K.renk });
+      Y_({ metin: "Hikâyeyi dinle, her kutuya resmini çiz.\nSonra kes ve sırasıyla bir kâğıda yapıştır.", font: "andika", kalin: false, boy: 4.2, x: 105, y: 59, renk: "#546e7a" });
+      K.hikaye.forEach(function (t, i) {
+        var x = i % 2 ? 153 : 57, y = i < 2 ? 118 : 216, g = yeniId();
+        S_({ sekil: "kart", kose: 5, x: x, y: y, w: 90, h: 92, dolgu: "#ffffff", kenarR: "#78909c", kenarK: 0.7, kenarStil: "kesik", grup: g });
+        S_({ sekil: "daire", x: x - 36, y: y - 37, w: 11, h: 11, dolgu: K.renk, kenarK: 0, grup: g }); Y_({ metin: String(i + 1), boy: 5.5, x: x - 36, y: y - 37, renk: "#ffffff", grup: g });
+        S_({ sekil: "kart", kose: 3, x: x, y: y + 33, w: 84, h: 20, dolgu: KN_PASTEL[i % KN_PASTEL.length], kenarK: 0, grup: g });
+        Y_({ metin: t, font: "andika", kalin: true, boy: 4.1, x: x, y: y + 33, renk: "#263238", grup: g });
+      });
+      Y_({ metin: "✂ Kesik çizgilerden kes.", font: "andika", kalin: false, boy: 3.6, x: 105, y: 272, renk: "#9e9e9e" });
+    } },
+    { id: "pano", ad: "Değer panosu (yatay)", ikon: "📌", yap: function (a, K) {
+      sayfa(a, { kagit: "a4y", kenar: true, kenarRenk: K.renk, zemin: "#fffdf5", zemin2: KN_PASTEL[(K.id.length) % KN_PASTEL.length] });
+      BASLIK(knBuyuk(K.ad), 28, K.ad.length > 20 ? 12 : 16);
+      R_(K.resim, 78, 120, 104, "renkli");
+      K.soz.forEach(function (t, i) {
+        var y = 72 + i * 46, g = yeniId();
+        S_({ sekil: "balon", x: 205, y: y, w: 150, h: 40, dolgu: KN_PASTEL[i % KN_PASTEL.length], kenarR: K.renk, kenarK: 0.8, grup: g });
+        Y_({ metin: satirBol(t, 30), font: "andika", kalin: true, boy: 5.4, x: 205, y: y - 5, renk: "#263238", grup: g });
+      });
+    } },
+    { id: "odev", ad: "Evde birlikte yapalım (veli ile)", ikon: "🏠", yap: function (a, K) {
+      sayfa(a, { kagit: "a4d", adSoyad: true, kenar: true, kenarRenk: K.renk });
+      BASLIK("EVDE BİRLİKTE YAPALIM", 32, 12);
+      Y_({ metin: K.ad, font: "baloo", boy: 6.5, x: 105, y: 46, renk: K.renk });
+      S_({ sekil: "kart", kose: 5, x: 105, y: 92, w: 182, h: 64, dolgu: "#fff8e1", kenarR: "#f9a825", kenarK: 0.8 });
+      Y_({ metin: "Sayın Veli,\n" + satirBol(K.odev, 62), font: "andika", kalin: false, hiza: "sol", boy: 4.4, x: 105, y: 92, renk: "#37474f" });
+      S_({ sekil: "kart", kose: 6, x: 105, y: 194, w: 182, h: 118, dolgu: "#ffffff", kenarR: "#90a4ae", kenarK: 0.8, kenarStil: "kesik" });
+      Y_({ metin: "Resim ya da fotoğraf alanı", font: "andika", kalin: false, boy: 4, x: 105, y: 194, renk: "#cfd8dc" });
+      Y_({ metin: "Veli imzası: ....................................", font: "andika", kalin: false, boy: 4.4, x: 150, y: 270, renk: "#546e7a" });
+    } },
+    { id: "veli", ad: "Veli bilgilendirme mektubu", ikon: "✉️", yap: function (a, K) {
+      sayfa(a, { kagit: "a4d", kenar: true, kenarRenk: K.renk });
+      BASLIK("VELİ BİLGİLENDİRME", 30, 12);
+      Y_({ metin: K.ad, font: "baloo", boy: 6.5, x: 105, y: 44, renk: K.renk });
+      var imza = [(S.ayar.ogretmen || "").trim(), (S.ayar.unvan || "").trim()].filter(Boolean).join("\n") || "Kur'an Kursu Öğreticisi";
+      var govde = "Sayın Veli,\n\n" + satirBol(K.veli + " Konuyu evde de konuşmanız, öğrendiklerini pekiştirmesine yardımcı olacaktır.", 66) +
+        "\n\nEvde sorabileceğiniz sorular:\n" + K.sorular.map(function (q) { return "•  " + q; }).join("\n") +
+        "\n\nEvde birlikte yapabilirsiniz:\n" + satirBol(K.odev, 66) + "\n\nDesteğiniz için teşekkür ederiz.";
+      Y_({ metin: govde, font: "andika", kalin: false, hiza: "sol", boy: 4.6, satir: 1.35, x: 105, y: 150, renk: "#263238" });
+      Y_({ metin: imza, font: "andika", kalin: true, boy: 4.6, x: 160, y: 262, renk: "#37474f" });
+    } }
+  ];
+  function knSablon(K, P) { return { id: "kn-" + K.id + "-" + P.id, ad: K.ad + " · " + P.ad, yap: function (a) { P.yap(a, K); } }; }
+  function knTuval(sb) { // baskı çözünürlüğünde sayfa
+    var v = sablonVerisi(sb, {}), k = KAGIT[v.kagit] || KAGIT.a4d, t = tuvalYap(k[0], k[1], DPI);
+    var eski = S.atolye, a = VARSAYILAN().atolye; Object.assign(a, v.sayfa, { kagit: v.kagit, katmanlar: v.katmanlar, boya: [] }); S.atolye = a;
+    try { sayfaCiz(t.x, k[0], k[1], false); } finally { S.atolye = eski; }
+    return { tur: "tuval", tuval: t.c, w: k[0], h: k[1] };
+  }
+  function knKonu() { var id = (S.konular && S.konular.secili) || KONULAR[0].id; return KONULAR.filter(function (K) { return K.id === id; })[0] || KONULAR[0]; }
+  var knSecPdf = null;
+  function konularCiz() {
+    if (!S.konular) S.konular = { secili: KONULAR[0].id };
+    var sol = $("knListe"), sag = $("knSayfalar"), K = knKonu(); if (!sol) return;
+    sol.innerHTML = "";
+    ["Değerler", "Sevgi"].forEach(function (gr) {
+      sol.appendChild(h("div", { class: "kn-grup", text: gr === "Değerler" ? "Değerler (Etkinlik Kitabı 1)" : "Sevgi (Etkinlik Kitabı 2)" }));
+      KONULAR.filter(function (x) { return x.grup === gr; }).forEach(function (x) {
+        sol.appendChild(h("button", { type: "button", class: "kn-konu" + (x.id === K.id ? " secili" : ""), style: "--kr:" + x.renk, text: x.ad, onclick: function () { S.konular.secili = x.id; sakla(); konularCiz(); } }));
+      });
+    });
+    $("knBaslik").textContent = K.ad; $("knBaslik").style.color = K.renk;
+    sag.innerHTML = "";
+    KN_SAYFA.forEach(function (P) {
+      var sb = knSablon(K, P), kart = h("div", { class: "kn-kart" });
+      kart.appendChild(h("img", { alt: P.ad, src: onizleme(sb, 220), title: "Büyük görmek için Düzenle'ye basın" }));
+      kart.appendChild(h("div", { class: "kn-ad", text: P.ikon + " " + P.ad }));
+      kart.appendChild(h("div", { class: "kn-dug" }, [
+        h("button", { type: "button", class: "d d-cikti d-kucuk", text: "🖨 Yazdır", title: "Bu sayfayı yazdır", onclick: function () { yazdirSayfalar([knTuval(sb)]); } }),
+        h("button", { type: "button", class: "d d-kaydet d-kucuk", text: "✎ Düzenle", title: "Etkinlik Stüdyosu'nda açıp değiştir", onclick: function () { gorunumAc("v-atolye"); sablonAc(sb); } }),
+        h("button", { type: "button", class: "d d-onizle d-kucuk", text: "⬇ PDF", title: "PDF olarak indir (Canva'ya da yüklenebilir)", onclick: function () { knSecPdf = K.ad + "_" + P.ad; pdfIndirSayfalar([knTuval(sb)]); } })
+      ]));
+      sag.appendChild(kart);
+    });
+  }
+  $("knHepsiYazdir").onclick = function () { var K = knKonu(); mesgul(true, "Sayfalar hazırlanıyor…"); setTimeout(function () { try { yazdirSayfalar(KN_SAYFA.filter(function (P) { return P.id !== "pano"; }).map(function (P) { return knTuval(knSablon(K, P)); })); } finally { mesgul(false); } }, 30); };
+  $("knHepsiPdf").onclick = function () { var K = knKonu(); knSecPdf = K.ad + "_tum_sayfalar"; pdfIndirSayfalar(KN_SAYFA.map(function (P) { return knTuval(knSablon(K, P)); })); };
+  $("knCanva").onclick = function () {
+    modalAc("Canva'da açmak", [h("div", { html: "<ol style='margin:4px 0 0 18px;line-height:1.7'><li>Beğendiğiniz sayfanın altındaki <b>⬇ PDF</b> düğmesine basın; PDF bilgisayarınıza iner.</li><li><b>canva.com</b>'u açın, sol menüden <b>Yüklenenler → Dosya yükle</b>'ye basın (ya da PDF'i Canva sayfasına sürükleyip bırakın).</li><li>Canva PDF'i <b>düzenlenebilir tasarıma</b> çevirir: yazılar, şekiller ve resimler tek tek değiştirilebilir.</li></ol><div class='ipucu' style='margin-top:8px'>Program Canva'ya kendisi bir şey göndermez; dosyayı siz yüklersiniz.</div>" })], []);
+  };
+  MOD["v-konular"] = {
+    ciz: konularCiz,
+    sayfalar: function () { var K = knKonu(); return KN_SAYFA.map(function (P) { return knTuval(knSablon(K, P)); }); },
+    ad: function () { var a = knSecPdf || knKonu().ad; knSecPdf = null; return dosyaAdiTemiz(a) + "_" + bugun(); }
+  };
   MOD["v-atolye"] = {
     ciz: ciz, sil: sil,
     sayfalar: function () {
@@ -4251,6 +4544,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v2.0", "YENİ: ★ KONULAR · HAZIR SAYFALAR (program artık bununla açılır). Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konuları: Değerler (Dua, Şükür ve Özür Dileme · Sevgi ve Merhamet · Saygı · Sorumluluk · Yardımlaşma · Sabır · İyilik · Doğruluk ve Dürüstlük · Adalet) ve Sevgi (Allah'ı · Peygamberimi · Kitabımı · İnsanları · Kâinatı · Dinimi · Dinî Mekânlarımızı · Vatanımı · Bayramlarımızı Seviyorum). Konuyu seçince 6 hazır sayfa gelir: boyama sayfası, doğru mu yanlış mı, hikâye kartları (dinle, çiz, kes), değer panosu (yatay), evde birlikte yapalım (veli ile performans ödevi), veli bilgilendirme mektubu. Her sayfada 🖨 Yazdır, ✎ Düzenle (Etkinlik Stüdyosu'nda açar), ⬇ PDF (Canva'ya da yüklenebilir); Hepsini yazdır / Hepsini PDF. Metinler programın kendi metinleridir; kitaptaki resimler kullanılmadı."],
   ["v1.9", "İnternetten resim arama düzeltildi: arşiv yanıt vermezse bir kez yeniden dener; ikinci arşiv olarak Wikimedia Commons eklendi (iki arşivin sonuçları birlikte gelir); sık kullanılan Türkçe kelimeler (kedi, cami, elma, kelebek…) daha çok sonuç için İngilizce aranır; hata yazısı artık dar kutuya sıkışmıyor. Geri Al / İleri Al düzeltildi: her kalem, fırça, silgi ve kova işlemi ayrı adım, en fazla 50 adım geri; Geri Al artık seçili aracı (fırça, renk, kalınlık) değiştirmiyor, Seç/Taşı'ya atmıyor. Etkinlik Stüdyosu boyama araçlarına TAŞIRMADAN BOYAMA: Serbest / 🔒 Sadece içini (hangi alanın içinde başlarsanız boya orada kalır, ör. yalnız A harfinin içi) / 🔒 Sadece dışını (resim, harf ve şekillerin içine girmez)."],
   ["v1.8", "Etkinlik Stüdyosu'na ŞABLON GALERİSİ: arama, kategoriler, küçük resimler; 17 hazır şablon (şekillerden robot + sayma, kes-yapıştır robot, boyama, Türkçe harf, rakam ve sayma, kaç tane?, resimli kartlar, fotoğraflı aslan çerçevesi, Elif-Ba harfleri panosu (doğru harf adlarıyla), Elif-Ba harf çalışma sayfası (resim + harf + harekeler + kubbeli yazma ızgarası), çizgi çalışması, Resfebe, sofra adabı ve yemek duası panosu, numaralı 3×3 kart panosu, haftanın değeri panosu, sınıf kuralları panosu, aferin belgesi); değişkenli şablonlar (harf, rakam, resim, metin seçilir); 'Bu sayfayı şablon olarak kaydet' (şablonlar kalıcıdır, Drive ile eşitlenir, Verileri Temizle silmez), şablonları indir / yükle (sablonlar.json); Ayarlar'da çevrimiçi şablon adresi (GitHub'daki sablonlar.json internet varken otomatik gelir). Şekillere 8 desen çizgisi eklendi (yay, ters yay, zikzak, dalga, kare, ilmek, baklava, testere; tekrar sayısı ayarlanır)."],
   ["v1.7", "Verileri Temizle düzeltildi: yalnız çalışma alanlarını (ekrandaki plan, günlük akış, veli notu, stüdyo sayfası, resim listeleri, sayfa ayarları) boşaltır. Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar hem programda hem Drive'da kalır; Drive bağlantısı açık kalır, dosya silinmez."],
@@ -4267,7 +4561,7 @@ $("btnKilavuz").onclick = function () {
     "<p>Bilgiler bu bilgisayardaki tarayıcıda saklanır. İnternete yalnız Etkinlik Stüdyosu'nda resim ararken (yalnız arama kelimesi) çıkılır. Bilgisayar değiştirirken <b>Araçlar &gt; Yedek Al</b> ile yedek alın, yeni bilgisayarda <b>Yedek Yükle</b> ile yükleyin; ya da <b>Drive'a Bağla</b> ile işte ve evde aynı veriyle çalışın. Resimler yedeğe ve hafızaya girmez; programı kapatınca resim listeleri boşalır.</p>" +
     "<h4>Drive'a Bağla (işte ve evde aynı veri)</h4><ul><li><b>Araçlar &gt; Drive'a Bağla</b>'ya bir kez basın; açılan pencerede bilgisayarınızdaki Google Drive klasörünü seçin (Linux: <b>~/GoogleDrive</b>, Windows: <b>G:\\Drive'ım</b>) → <b>PROGRAM YEDEKLERİ</b> klasörü → dosya adı <b>ogretmen_veri.json</b> → Kaydet. Diğer bilgisayarda da aynı dosyayı seçin.</li><li>Bundan sonra her değişiklik 1,5 saniye içinde o dosyaya kendiliğinden yazılır; Yedek Al / Yedek Yükle gerekmez. Program açılırken ve pencereye her döndüğünüzde dosyaya bakar; başka bilgisayarda daha yeni kayıt yapıldıysa önce onu yükler ve 'Drive'da daha yeni kayıt vardı, o yüklendi' der. Eski açık bir sekme yeni kaydın üstüne yazamaz.</li><li>Seçilen dosyada kayıt varsa sorulur: <b>Tamam</b> → dosyadaki kayıt yüklenir; <b>İptal</b> → ekrandakiler dosyaya yazılır.</li><li>Düğmenin rengi durumu gösterir: <b>gri</b> bağlı değil · <b>yeşil</b> Drive'a Bağlı (üzerine gelince dosya adı ve son eşitleme saati) · <b>turuncu</b> izin gerekiyor (sayfada bir yere tıklayın, Chrome sorunca 'İzin ver' deyin) · <b>kırmızı</b> yazma hatası (veriler bu bilgisayarda durur).</li><li>Bağlıyken düğmeye basınca başka dosya seçebilir ya da seçme penceresini kapatıp bağlantıyı kesebilirsiniz. Menünün açık/kapalı durumu, yakınlaştırma ve açık sayfa her bilgisayarda ayrı kalır. Drive dosyası Yedek Al dosyasıyla aynı biçimdedir; Yedek Yükle ile de açılır. <b>Verileri Temizle</b> yalnız çalışma alanlarını boşaltır; Kaydet ile saklanıp Geçmiş'te görünen kayıtlar, Etkinlik Bankası, Yapılan Etkinlikler ve Ayarlar hem programda hem Drive'daki dosyada kalır. Drive bağlantısı açık kalır, dosya silinmez.</li><li>Yalnız Chrome ve Edge'de çalışır. Fotoğraflar Drive'a gitmez.</li></ul>" +
     "<h4>Ortak düğmeler</h4><ul><li><b>↶ Geri Al / ↷ İleri Al</b>: son değişikliği geri alır / yineler. Klavyede <b>Ctrl+Z</b> ve <b>Ctrl+Y</b>.</li><li><b>Silme</b>: satırları kutucukla ya da resimleri tıklayarak seçin, <b>Delete</b> tuşuna basın ya da kırmızı düğmeyi kullanın. Her silmede onay sorulur.</li><li><b>✖ Temizle</b>: o sayfadaki her şeyi siler (onay sorar; Geri Al ile geri gelir).</li><li><b>⬇ Çıktı ▾</b> menüsü: <b>Önizle</b> (fare tekerleğiyle yakınlaşır), <b>Yazdır</b>, <b>PDF</b>, <b>Word</b>, <b>Excel</b>; o sayfanın belgesine uygun olanlar görünür.</li><li>Menüdeki klasörler kapalı açılır; açtığınız sayfanın klasörü kendiliğinden açılır.</li><li>Sarı alanlar yazılabilir alanlardır; baskıda ve PDF'te sarı görünmez.</li></ul>" +
-    "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'. <b>Taşırmadan boyama</b>: kalem, fırça ve fosforluda <b>Serbest</b> / <b>🔒 Sadece içini</b> (boyamaya hangi alanın içinde başlarsanız boya o alanda kalır) / <b>🔒 Sadece dışını</b> (resim, harf ve şekillerin içine girmez). Her boyama hareketi ayrı adımdır; <b>Geri Al</b> en fazla 50 adım geri gider ve seçili aracı değiştirmez.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e ve Wikimedia Commons'a gönderilir (sık kullanılan Türkçe kelimeler İngilizce aranır), resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
+    "<h4>★ Konular · Hazır Sayfalar</h4><ul><li>Program bu sayfayla açılır. Solda Diyanet Kur'an Kursları Etkinlik Kitabı 1-2 (4-6 yaş) konuları vardır: <b>Değerler</b> ve <b>Sevgi</b>.</li><li>Bir konuya tıklayın; sağda o konunun <b>6 hazır sayfası</b> çıkar: boyama sayfası, doğru mu yanlış mı, hikâye kartları (dinle, çiz, kes), değer panosu (yatay A4), evde birlikte yapalım (veli ile performans ödevi, 'Sayın Veli' yönergeli), veli bilgilendirme mektubu (imza Ayarlar'daki öğretici adından gelir).</li><li><b>🖨 Yazdır</b> sayfayı hemen basar. <b>✎ Düzenle</b> sayfayı Etkinlik Stüdyosu'nda açar; resmi, yazıyı, rengi değiştirebilirsiniz (Stüdyo'daki sayfanın yerine geçer, Geri Al ile dönülür). <b>⬇ PDF</b> indirir; bu PDF'i Canva'ya yükleyip orada da düzenleyebilirsiniz.</li><li>Üstteki <b>Hepsini yazdır</b> (pano hariç) ve <b>Hepsini PDF</b> bütün sayfaları birden verir.</li></ul>" + "<h4>1 Etkinlik Stüdyosu</h4><ul><li><b>Canva benzeri tasarım sayfası.</b> Soldaki sekmelerden ekleyin: <b>Şablon</b> (şablon galerisi: arama kutusu, kategoriler, küçük resimli hazır şablonlar; ✎ işaretlilerde harf / rakam / resim seçilir; <b>⭐ Bu sayfayı şablon olarak kaydet</b> ile kendi şablonlarınız; <b>⬇ Şablonlarımı indir</b> sablonlar.json verir, GitHub'a konunca Ayarlar'daki 'Çevrimiçi şablon adresi' ile internetten gelir; <b>⬆ Şablon dosyası yükle</b>), <b>Şekil</b> (kart, daire, yıldız, kalp, ok, bulut, konuşma balonu, şerit başlık, kubbe…; hazır şerit/bulut başlık, numara rozeti, kubbeli yazma ızgarası), <b>Resim</b> (programın kendi çizimleri; renkli / boyama çizgisi / kesik çizgi; harfler ve rakamlar; <b>🌐 İnternetten resim ara</b>), <b>Yazı</b> (hazır yazı stilleri), <b>Fotoğraf</b>, <b>Düzen</b> (kart ızgarası: 3×3 numaralı kart, satırlar, harf kartları; kesme çizgileri).</li><li><b>Yazı stüdyosu</b>: programa gömülü yazı tipleri (Fredoka, Baloo, Andika, Lilita, Patrick, Arapça için Amiri); çok satır, hizalama, satır ve harf aralığı, kavisli yazı, tek renk / renk geçişi / gökkuşağı (her harf ayrı renk), kenar, dış kenar, gölge; boyama ve kesik (üzerinden geç) görünüm.</li><li><b>Seçme</b>: tıklayın; <b>Shift</b> + tıklama ya da boş yerden kutu çizme birden çok parça seçer. Mavi kare büyütür, turuncu kareler yalnız eni ya da boyu değiştirir, yeşil yuvarlak döndürür. Taşırken pembe kılavuzlar çıkar ve parça hizaya oturur (Alt basılıyken kapalı).</li><li><b>Sağ panel</b>: seçili parçanın bütün ayarları; çoğalt, öne/arkaya, ayna, grupla / grubu çöz, kilitle, sil; sayfaya ya da birbirine göre hizala, eşit dağıt; en altta <b>katman listesi</b> (kilitli parçalar oradan seçilir).</li><li>Klavye: Ctrl+D çoğalt · Ctrl+G grupla · Ctrl+Shift+G grubu çöz · Ctrl+A tümünü seç · Esc seçimi bırak · Delete sil · oklar kaydırır (Shift ile 10 mm).</li><li><b>Boyama araçları</b> (sayfanın üstünde): ✏️ kalem, 🖌 fırça, 🖍 fosforlu, 🪣 boya kovası, 🧽 silgi (yalnız boyamayı siler), renk ve kalınlık; 'Boyamayı temizle'. <b>Taşırmadan boyama</b>: kalem, fırça ve fosforluda <b>Serbest</b> / <b>🔒 Sadece içini</b> (boyamaya hangi alanın içinde başlarsanız boya o alanda kalır) / <b>🔒 Sadece dışını</b> (resim, harf ve şekillerin içine girmez). Her boyama hareketi ayrı adımdır; <b>Geri Al</b> en fazla 50 adım geri gider ve seçili aracı değiştirmez.</li><li><b>Sayfa ayarları</b>: A4 / A3, dikey / yatay, başlık, Adı Soyadı satırı, sayfa çerçevesi, kurum adı, zemin rengi ve renk geçişi.</li><li><b>İnternetten resim</b>: yalnız internet varken çalışır; arama kelimesi Openverse'e ve Wikimedia Commons'a gönderilir (sık kullanılan Türkçe kelimeler İngilizce aranır), resim serbest lisanslıdır; kaynak yazısı sayfaya küçük yazıyla eklenebilir. Bazı kaynaklar indirmeye izin vermez, o zaman başka resim seçin.</li><li>Fotoğraflar kaydedilmez ve yedeğe girmez; program kapanınca silinir.</li></ul>" +
     "<h4>2 Çalışma Sayfaları</h4><ul><li>Hepsi tek sayfada: sayfanın üstündeki düğmelerden türü seçin.</li><li>Çizgi çalışması, labirent, sayma, rakam yazma, örüntü, eşleştirme, gölge, farklı olanı bul, şekil boyama sayfalarını kendiliğinden çizer. 🎲 ile yeni bir sayfa üretilir.</li><li>Resimden Boyama: verdiğiniz resmin çizgilerini çıkarıp boyama sayfası yapar.</li></ul>" +
     "<h4>3 Resimden Boyama</h4><ul><li>Bir resmin çizgilerini çıkarıp boyama sayfası yapar. '🗑 Resmi kaldır' resmi kaldırır.</li></ul>" +
     "<h4>4 Resim Yerleştirme</h4><ul><li>Bir sayfaya 1-24 resim yerleştirir ya da resmi A5, A6, 13×18 gibi bir ölçüye getirir.</li><li>'Ölçü tam olsun' işaretli değilse yazıcı payı için hafifçe küçültür; böylece bir A4'e 2 A5 sığar.</li><li>'✖ Temizle' listedeki bütün resimleri siler.</li></ul>" +
