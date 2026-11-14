@@ -909,7 +909,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.4";
+var SURUM = "v3.5";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3901,7 +3901,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Günlük resim hakkı sınırlı (yaklaşık 30): gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
-        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
       var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
@@ -5037,6 +5037,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.5", "Asistan resim üretirken peygamberlerin ve sahabenin resmini çizmez (yerine cami, Kâbe, hilal, Kur'an gibi resim önerir); gerçek kişi ve çizgi film karakteri çizmez, benzer özgün karakter üretir; resimdeki yazıları sayfaya ayrı yazı olarak ekler."],
   ["v3.4", "Asistan hızlandı: Figma'nın günlük hakkı bittiyse o gün bir daha denemeden doğrudan Canva'ya geçer; sayfayı gözden geçirme adımı daha hızlı modelle yapılır. Not: Canva bir resmi 1-2 dakikada çizer; Figma (her gece 03:00'te yenilenir) 15-30 saniyede çizer."],
   ["v3.3", "Asistan kutusundaki yeşil robot kaldırıldı; Claude sayfasında Asistan'ın yerinde kendi seçtiğiniz resim, GitHub adresinde sade ✨ simgesi görünür."],
   ["v3.2", "Menüyü gizle / göster düğmesi (arama kutusunun sağındaki ≡) SGK e-Bildirge programındaki gibi yapıldı: basınca menü ince bir şeride iner, yalnız simgeler kalır (adları fare üstündeyken görünür), düğme ters döner; yeniden basınca açılır. Seçim hatırlanır. Telefonda menü ☰ ile açılıp kapanır."],
