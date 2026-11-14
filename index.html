@@ -853,7 +853,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v2.3";
+var SURUM = "v2.4";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3505,6 +3505,10 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     if (rs && KUT[rs[0]]) { R_(rs[0], 180, 238, 30, "cizgi"); Y_({ metin: rs[1], font: "andika", kalin: true, boy: 5, x: 180, y: 258, renk: "#546e7a" }); }
     Y_({ metin: ad, font: "andika", kalin: true, boy: 6, x: rs ? 145 : 153, y: 262, renk: renk });
   }
+  HAZIR_SABLON.push({ id: "robotBuyuk", ad: "Büyük robot (tam sayfa)", kat: "Şekil", etiket: "robot büyük poster boyama şekil", degisken: [{ ad: "GORUNUM", etiket: "Görünüm", tur: "secim", varsayilan: "renkli", secenek: [["renkli", "Renkli"], ["boyama", "Boyama (içi beyaz)"]] }, { ad: "BASLIK", etiket: "Başlık", tur: "metin", varsayilan: "BENİM ROBOTUM" }], yap: function (a, d) {
+    sayfa(a, { kagit: "a4d", adSoyad: true, kenar: true }); BASLIK(d.BASLIK || "BENİM ROBOTUM", 32, 13); robotCiz(105, 162, 1.45);
+    if (d.GORUNUM === "boyama") a.katmanlar.forEach(function (L) { if (L.tip === "sekil" && L.dolgu && L.dolgu !== "#263238") L.dolgu = "#ffffff"; });
+  } });
   HAZIR_SABLON.push({ id: "elifGorev", ad: "Elif-Ba 3 görevli harf sayfası", kat: "Elif-Ba", etiket: "elif ba elifba harf görev noktalı bul boya yüzlü harf", degisken: [{ ad: "HARF", etiket: "Harf", tur: "elif", varsayilan: "ب" }], yap: function (a, d) { elifGorevYap(a, d.HARF || "ب"); } });
   function elifBuyukYap(a, hf) {
     var i2 = HARF_ELIF.indexOf(hf), ad = i2 >= 0 ? ELIF_AD[i2] : hf, renk = ELIF_RENK[(i2 < 0 ? 0 : i2) % ELIF_RENK.length];
@@ -3656,6 +3660,25 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           var n = 0; (g.ogeler || []).forEach(function (o) { var r = ogeEkle(o); if (r && r.indexOf(" ") < 0) n++; });
           sec([]); durumKaydet(); ciz(); return n + " öğe eklendi";
         } },
+      { name: "sablon_ac", description: "Hazır şablonlardan birini Stüdyo'da açar (eski sayfanın yerine; Geri Al ile dönülür). Şablonlar (id: ad [değişkenler]): " + tumSablonlar().map(function (x) { return x.id + ": " + x.ad + (x.degisken && x.degisken.length ? " [" + x.degisken.map(function (v) { return v.ad + (v.secenek ? "=" + v.secenek.map(function (o) { return o[0]; }).join("|") : "") + (v.tur === "resim" ? "=resim adı" : v.tur === "elif" ? "=Arap harfi" : v.tur === "harf" ? "=Türkçe harf" : ""); }).join(", ") + "]" : ""); }).join("; "),
+        inputSchema: { type: "object", properties: { id: { type: "string" }, degerler: { type: "object", description: "değişken adı → değer" } }, required: ["id"] },
+        execute: function (g) {
+          var sb = tumSablonlar().filter(function (x) { return x.id === g.id; })[0]; if (!sb) return "şablon bulunamadı";
+          var d = varsayilanlar(sb); Object.keys(g.degerler || {}).forEach(function (k) { d[k] = String(g.degerler[k]); });
+          gorunumAc("v-atolye"); var v = sablonVerisi(sb, d), a = At(), gmap = {};
+          a.katmanlar = v.katmanlar.map(function (L) { var y = JSON.parse(JSON.stringify(L)); y.id = yeniId(); if (y.grup) { gmap[y.grup] = gmap[y.grup] || yeniId(); y.grup = gmap[y.grup]; } return y; });
+          a.boya = JSON.parse(JSON.stringify(v.boya || [])); Object.assign(a, v.sayfa); a.kagit = v.kagit; a.arac = "sec"; sec([]); durumKaydet(); ciz();
+          return "açıldı: " + sb.ad;
+        } },
+      { name: "postere_gonder", description: "Stüdyo'daki sayfayı Poster Yap (Büyüt ve Böl) bölümüne gönderir: sayfa büyütülüp birden çok A4'e bölünür, birleştirince büyük poster olur. duzen: 2x2 (4 A4), 2x3 (6 A4), 3x3 (9 A4), A3 (tek A3).",
+        inputSchema: { type: "object", properties: { duzen: { type: "string", enum: ["2x2", "2x3", "3x3", "A3"] } }, required: ["duzen"] },
+        execute: function (g) {
+          var a = At(); if (!a.katmanlar.length) return "Stüdyo'da sayfa boş; önce sayfayı kur";
+          var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI), es = [a.adSoyad, a.kenar]; a.adSoyad = false; a.kenar = false; // posterde ad-soyad satırı ve sayfa çerçevesi olmasın
+          try { sayfaCiz(t.x, o.W, o.H, false); } finally { a.adSoyad = es[0]; a.kenar = es[1]; }
+          var id = "r" + yeniId(); IMG[id] = { img: t.c, w: t.c.width, h: t.c.height, ad: "Stüdyo sayfası" };
+          S.poster.img = id; S.poster.duzen = g.duzen || "2x3"; durumKaydet(); gorunumAc("v-poster"); return "poster hazır: " + S.poster.duzen;
+        } },
       { name: "sayfayi_oku", description: "Etkinlik Stüdyosu'ndaki sayfanın öğelerini (id, tür, konum, yazı) verir. Bir şeyi değiştirmeden önce çağır.", inputSchema: { type: "object", properties: {} },
         execute: function () { return JSON.stringify(ozet()); } },
       { name: "oge_degistir", description: "Stüdyo'daki bir öğeyi değiştirir: alanlar içinde x, y, boy (yazı boyu ya da resim boyutu), w, h, metin, renk, dolgu, gorunum/mod, font. sil:true öğeyi siler.",
@@ -3676,8 +3699,11 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     ];
     function talimat() {
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
-        "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. Hazır bir sayfa uyuyorsa hazir_sayfa'yı kullan; uymuyorsa sayfa_kur ile kendin tasarla " +
-        "(4-6 yaş: büyük resimler, az ve büyük yazı, kalın çizgiler; başlık üstte; boyama için resim gorunum 'cizgi'). Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
+        "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
+        "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Haftalık Plan, Günlük Akış, Etkinlik Bankası, Veli Notu. Bunlar VAR; 'yapamıyorum' deme. " +
+        "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk ya da robot şablonu; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Ancak hiçbiri uymazsa sayfa_kur. " +
+        "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
+        "Poster istenirse önce sayfayı (şablon/hazır sayfa) Stüdyo'da kur, sonra postere_gonder. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
         "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
@@ -4797,6 +4823,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v2.4", "Asistan güçlendirildi: hazır şablonları açabiliyor (robot, boyama, harf, rakam, Elif-Ba, panolar…), Stüdyo sayfasını POSTER YAP'a gönderip 4/6/9 A4'e bölebiliyor; basit şekillerden kendi kafasına göre resim çizmek yerine önce hazır sayfa ve şablonları kullanıyor. Yeni şablon: Büyük robot (tam sayfa, renkli ya da boyama)."],
   ["v2.3", "ASİSTAN: program Claude'un sayfasından (claude.ai) açılınca en üstte mor '🤖 Asistan'a söyle' kutusu çıkar. Ne istediğinizi yazın ya da 🎤 Konuş'a basıp söyleyin; Asistan hazır sayfayı açar, Stüdyo'da yeni sayfa kurar ya da var olan sayfayı değiştirir ('başlığı büyüt', 'kediyi büyüt'). İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın. Claude sayfasında yazdır düğmesi PDF verir (açıp yazdırırsınız); Drive bağlantısı ve internetten resim arama orada çalışmaz, GitHub adresinde çalışır."],
   ["v2.2", "RESİM KÜTÜPHANESİ YENİLENDİ: 33 resim 3D çizgi film tarzında (kaplumbağa, kedi, köpek, kuş, civciv, tavşan, balık, kelebek, fil, ayı, aslan, kuzu; elma, armut, muz, çilek, kiraz, üzüm, portakal, karpuz; ağaç, lale, papatya, güneş, bulut, gökkuşağı, yıldız; cami, Kur'an ve rahle, hilal ve yıldız, kandil/fener, tesbih ve YENİ seccade). Resimler Figma yapay zekâsıyla bu program için üretildi. 'Renkli' görünümde 3D resim, 'Boyama çizgisi' ve 'Kesik çizgi' görünümlerinde çizgi çizim kullanılır; hazır sayfalar ve şablonlar kendiliğinden yeni resimleri kullanır."],
   ["v2.1", "Konular ekranına ELİF-BA HARFLERİ (29 harf) eklendi: harfi seçince 3 hazır sayfa gelir. YENİ 3 görevli harf sayfası: üstte yüzü olan renkli harf ve konuşma balonu ('Merhaba! Benim adım Be…'), 1) noktalı harfleri birleştir, 2) dairedeki karışık harfler arasından o harfi bul (her seferinde farklı dizilir), 3) büyük harfi ve o sesle başlayan resmi boya (Elma, Balık, Tavşan, Cami, Kedi, Lale, Muz, Fil, Ayı, Yıldız…). Ayrıca büyük harf boyama sayfası ve 3 harflik çalışma sayfası. Şablon galerisine de 'Elif-Ba 3 görevli harf sayfası' eklendi."],
