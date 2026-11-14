@@ -895,7 +895,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.8";
+var SURUM = "v3.9";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3703,18 +3703,25 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     function figmaYuku(r) { return r && r.payload != null ? r.payload : null; }
     function figmaHata(e) {
       var m = String((e && e.message) || e || "");
-      if (/credit|quota|limit/i.test(m)) return "Figma'nın bugünkü ücretsiz resim hakkı doldu; gece 03:00'te yenilenir, o zaman yeni resim çizebilirim.";
+      if (/credit|quota|limit/i.test(m)) {
+        var t = S.ayar.figmaBitti ? new Date(S.ayar.figmaBitti) : null, ne = t && !isNaN(t) ? t.toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "";
+        return "Figma'daki resim hakkı doldu" + (ne ? "; " + ne + "'de yenilenir" : "") + ", o zaman yeni resim çizebilirim.";
+      }
       if (e && (e.code === "server_not_connected" || e.code === "needs_reauth")) return "Figma bağlantısı yok ya da süresi dolmuş: claude.ai → Ayarlar → Bağdaştırıcılar → Figma'yı yeniden bağlayın.";
       if (e && (e.code === "not_in_manifest" || e.code === "approval_required")) return "Figma'yı kullanmaya izin verilmedi. Sayfayı yenileyip izin verin.";
       return "Resim üretilemedi (" + ((e && e.code) || "hata") + "): " + m.slice(0, 160);
     }
-    function figmaDosya() {
-      if (S.ayar.figmaDosya) return Promise.resolve(S.ayar.figmaDosya);
+    function figmaDosya() { // v3.9: bağlı Figma hesabı değişirse (ör. öğretmen/Education hesabı) yeni dosya açar, eski "hak bitti" kaydını siler
       return mcp.callTool("Figma", "whoami", {}).then(function (r) {
-        var p = figmaYuku(r), w = p && (p.whoami || p), plan = w && w.plans && w.plans[0];
+        var p = figmaYuku(r), w = (p && (p.whoami || p)) || {}, kim = String(w.email || w.id || w.handle || "");
+        if (kim && S.ayar.figmaKim !== kim) { if (S.ayar.figmaKim) { S.ayar.figmaDosya = ""; S.ayar.figmaBitti = ""; } S.ayar.figmaKim = kim; sakla(); }
+        if (S.ayar.figmaBitti && Date.now() < Date.parse(S.ayar.figmaBitti)) throw { code: "hak", message: "credits (bitti)" };
+        if (S.ayar.figmaDosya) return S.ayar.figmaDosya;
+        var pl = (w.plans || []), plan = pl.filter(function (x) { return !/starter|free/i.test(JSON.stringify(x)); })[0] || pl[0]; // ücretli/eğitim planı varsa onu seç (kredi dosyanın planından düşer)
         if (!plan) throw new Error("Figma planı bulunamadı");
-        return mcp.callTool("Figma", "create_new_file", { fileName: "Öğretmen Yardımcısı - Asistan Resimleri", planKey: plan.key, editorType: "design" });
-      }).then(function (r) { var p = figmaYuku(r), k = p && (p.file_key || p.fileKey); if (!k) throw new Error("Figma dosyası açılamadı"); S.ayar.figmaDosya = k; sakla(); return k; });
+        return mcp.callTool("Figma", "create_new_file", { fileName: "Öğretmen Yardımcısı - Asistan Resimleri", planKey: plan.key, editorType: "design" })
+          .then(function (r2) { var p2 = figmaYuku(r2), k = p2 && (p2.file_key || p2.fileKey); if (!k) throw new Error("Figma dosyası açılamadı"); S.ayar.figmaDosya = k; sakla(); return k; });
+      });
     }
     function beyaziSil(img) { // 3D resmin beyaz arka planını saydam yapar, kırpar, küçültür
       var w = img.naturalWidth, hh = img.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = hh;
@@ -3753,9 +3760,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       var konu = String(g.konu || "").trim(), ad = String(g.ad || konu).slice(0, 40), boyama = g.tur === "boyama", dosya, kucuk = false;
       if (!konu) return Promise.resolve("konu (İngilizce tarif) gerekli");
       cevap.textContent = "🎨 " + ad + " çiziliyor… (15-40 saniye)";
-      var bugunUTC = new Date().toISOString().slice(0, 10); // Figma hakkı her gün 00:00 UTC'de (TR 03:00) yenilenir
-      var figmaYol = S.ayar.figmaBitti === bugunUTC ? Promise.reject({ code: "hak", message: "credits (bugün bitti)" }) : figmaDosya();
-      return figmaYol.then(function (fk) {
+      function figmaResim(tekrar) { return figmaDosya().then(function (fk) {
         dosya = fk;
         if (boyama) return mcp.callTool("Figma", "generate_vector_illustration", { fileKey: fk, kind: "illustration", width: 800, height: 800, prompt: "Coloring book page for preschool children: " + konu + ", thick bold black outlines only, pure white fill, no shading, no color, simple large closed shapes, no background, no text" });
         return mcp.callTool("Figma", "generate_image", { fileKey: fk, width: 1024, height: 1024, prompt: konu + ", in 3D animated movie style (modern children's animation film), soft lighting, cute and friendly, whole subject visible, isolated on a plain pure white background, no text, no letters, no ground shadow" });
@@ -3768,8 +3773,16 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           var b = (r2.content || []).filter(function (x) { return x.type === "image" && x.data; })[0]; if (!b) throw new Error("resim alınamadı");
           return resimYukle("data:" + (b.mimeType || "image/png") + ";base64," + b.data).then(beyaziSil);
         });
-      }).catch(function (e) { // Figma olmadı: Canva programa yalnız çok küçük resim verdiği için kullanılmaz
-        if (/credit|quota|limit/i.test(String((e && e.message) || ""))) { S.ayar.figmaBitti = bugunUTC; sakla(); }
+      }).catch(function (e) { // kayıtlı dosya silinmiş ya da erişilemiyorsa bir kez yeni dosyayla dene
+        if (!tekrar && e && e.code !== "hak" && S.ayar.figmaDosya && /not found|404|403|permission|access|forbidden/i.test(String(e.message || ""))) { S.ayar.figmaDosya = ""; sakla(); return figmaResim(true); }
+        throw e;
+      }); }
+      return figmaResim(false).catch(function (e) { // Figma olmadı: Canva programa yalnız çok küçük resim verdiği için kullanılmaz
+        var em = String((e && e.message) || "");
+        if (e && e.code !== "hak" && /credit|quota|limit/i.test(em)) { // yenilenme zamanını Figma'nın mesajından al (günlük ya da aylık)
+          var t = em.match(/resets? at (\d{4}-\d\d-\d\dT[\d:.]+Z)/i), y = new Date(); y.setUTCHours(24, 0, 0, 0);
+          S.ayar.figmaBitti = t ? t[1] : y.toISOString(); sakla();
+        }
         throw { code: "ikisi", message: figmaHata(e) + " Bu arada kütüphanedeki resimlerden en yakınını kullan ve öğretmene bunu söyle." };
       }).then(function (data) {
         var kid = uretilenEkle(ad + (boyama ? " (boyama)" : ""), data);
@@ -5025,6 +5038,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.9", "Asistan başka bir Figma hesabına geçmeye hazır (ör. öğretmen hesabı / Figma for Education): bağlı hesap değişince kendine yeni dosya açar ve eski \"hak bitti\" kaydını unutur. Hak bitince ne zaman yenileneceğini Figma'nın verdiği saatle söyler (günlük ya da aylık)."],
   ["v3.8", "Menü sadeleşti: Planlama (Haftalık Plan, Günlük Akış Programı, Etkinlik Bankası) ve Veli ve Kayıtlar (Veli Bilgilendirme Notu, Yapılan Etkinlikler) bölümleri kaldırıldı. Eski kayıtlarınız silinmedi, yedekte durur. Ayarlar 6, Kâğıt ve Baskı Bilgileri 7 oldu. Konulardaki hazır veli mektubu sayfaları duruyor."],
   ["v3.7", "Canva yedeği kaldırıldı: Canva programa yalnız çok küçük, bulanık resim verebildiği için Asistan artık yalnız Figma ile çizer; günlük hak bitince bunu söyler ve kütüphanedeki en yakın resmi kullanır. Stüdyo'daki 'Asistan'ın resimleri' bölümünde her resmin köşesinde 🗑 sil düğmesi var (onay ister)."],
   ["v3.6", "Asistan dinî resimlerde: melek resmi de çizmez; Arapça yazıyı (Allah lafzı, Besmele, ayet, dua) resme yazdırmaz, sayfaya Arapça yazı tipiyle ayrıca yazar; namaz, abdest gibi hareketleri sade ve doğru tarif eder; kız çocuklarını başörtülü ve kapalı giysili çizdirir."],
