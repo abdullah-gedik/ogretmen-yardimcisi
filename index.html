@@ -853,7 +853,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v2.8";
+var SURUM = "v2.9";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3781,6 +3781,20 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           var dz = String(g.duzen || "2x3").toLowerCase().replace(/[×*\s]/g, "x").replace(/x+/g, "x"); if (dz !== "a3" && !/^[1-5]x[1-5]$/.test(dz)) dz = "2x3"; if (dz === "1x1") dz = "A3"; if (dz === "a3") dz = "A3";
           S.poster.img = id; S.poster.duzen = dz; durumKaydet(); gorunumAc("v-poster"); return "poster hazır: " + S.poster.duzen;
         } },
+      { name: "serbest_kod", description: "Hazır araçların yetmediği HER işi yapar: programın içinde JavaScript çalıştırır (değişkenler ve yardımcılar talimattaki SERBEST KOD bölümünde). Kodun son satırında return ile kısa bir sonuç döndür. Önce otomatik yedek alınır; Geri Al ile geri dönülür.",
+        inputSchema: { type: "object", properties: { aciklama: { type: "string", description: "kodun ne yaptığı, Türkçe" }, kod: { type: "string" } }, required: ["aciklama", "kod"] },
+        execute: function (g) {
+          var kod = String(g.kod || "");
+          if (/localStorage\s*\.\s*(clear|removeItem)|indexedDB\s*\.\s*deleteDatabase|\.gecmis\s*=\s*\[\]|document\s*\.\s*write/.test(kod)) throw new Error("Bu kod kalıcı veriyi silebilir; izin verilmez.");
+          durumKaydet();
+          var api = { S: S, UI: UI, KUT: KUT, IMG: IMG, KONULAR: KONULAR, HARF_ELIF: HARF_ELIF, ELIF_AD: ELIF_AD, At: At, sayfa: sayfa, BASLIK: BASLIK, katmanEkle: katmanEkle, yeniId: yeniId, sayfaOlcu: sayfaOlcu,
+            sec: sec, gorunumAc: gorunumAc, ciz: ciz, aktifCiz: aktifCiz, durumKaydet: durumKaydet, toast: toast, sayfaCiz: sayfaCiz, tuvalYap: tuvalYap, DPI: DPI, sablonVerisi: sablonVerisi, tumSablonlar: tumSablonlar, varsayilanlar: varsayilanlar,
+            knSablon: knSablon, KN_SAYFA: KN_SAYFA, knTuval: knTuval, yazdirSayfalar: yazdirSayfalar, pdfIndirSayfalar: pdfIndirSayfalar, robotCiz: robotCiz };
+          return Promise.resolve().then(function () { return new Function("api", "with (api) { return (async function () {\n" + kod + "\n})(); }")(api); }).then(function (r) {
+            durumKaydet(); try { aktifCiz(true); } catch (e) {} kontrolGerek = UI.view === "v-atolye";
+            var t = r === undefined ? "tamam" : typeof r === "string" ? r : JSON.stringify(r); return String(t).slice(0, 3000);
+          }).catch(function (e) { try { aktifCiz(true); } catch (e2) {} throw new Error("Kod hatası: " + ((e && e.message) || e)); });
+        } },
       { name: "sayfayi_oku", description: "Stüdyo'daki sayfanın öğelerini (id, tür, konum, boy, yazı) JSON olarak verir. Değiştirmeden önce çağır.",
         inputSchema: { type: "object", properties: {} },
         execute: function () { return JSON.stringify(ozet()); } },
@@ -3807,14 +3821,22 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         "\n- Kütüphane resimleri (3D renkli, çoğunun boyama çizgisi de var): " + Object.keys(KUT).filter(function (k) { return !KUT[k].d; }).map(function (k) { return k + "=" + KUT[k].ad; }).join(", ") +
         "\n- Şekiller: kart, daire, kare, yildiz, kalp, bulut, balon (konuşma balonu), ucgen, kubbe, kemer, hilal, ok, damla, cizgi. Fontlar: fredoka, baloo (Arapça da), andika (okuma-yazma), lilita, patrick, amiri (Arapça).";
     }
+    var SERBEST_DOKUMAN = "SERBEST KOD (serbest_kod aracı; kod async bir fonksiyonun gövdesidir, şu adlar doğrudan kullanılır): " +
+      "S (programın bütün verisi), UI.view (açık ekran), At() = S.atolye (Stüdyo sayfası: kagit a4d|a4y|a3d|a3y, baslik, adSoyad, kenar, zemin, zemin2, katmanlar[], boya[]). " +
+      "Katman türleri (ölçüler mm, x,y ORTA nokta, A4 dikey 210x297): yazi {tip:'yazi', metin, x, y, boy, renk, font, mod:'renkli'|'cizgi'|'kesik', hiza:'orta'|'sol'|'sag', dolgu:'gokkusagi'?, kenarK, kenarR, don}; " +
+      "sekil {tip:'sekil', sekil, x, y, w, h, dolgu, kenarR, kenarK, kenarStil:'duz'|'kesik'|'nokta', kose, don}; cizim (kütüphane resmi) {tip:'cizim', ad: KUT anahtarı, x, y, w, h, mod:'renkli'|'cizgi'|'kesik'}. Eklemek: katmanEkle(nesne, true). sayfa(At(), {kagit, adSoyad, kenar, zemin}) sayfa ayarı; BASLIK(metin, y, boy) gökkuşağı başlık; robotCiz(x, y, ölçek) şekillerden robot. " +
+      "Diğer bölümler ve S anahtarları: v-plan S.plan (haftalık plan), v-akis S.akis (günlük akış), v-veli S.veli (veli notu: hitap, hafta, sure, deger, etkinlik, ev, duyuru, kapanis), v-calisma S.calisma, v-boyama S.boyama, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-banka, v-yapilan, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
+      "Baskı/PDF: var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false); sonra yazdirSayfalar([{tur:'tuval', tuval:t.c, w:o.W, h:o.H}]) ya da pdfIndirSayfalar(aynısı). Hazır sayfa tuvali: knTuval(knSablon(KONULAR[i], KN_SAYFA[j])). " +
+      "YASAK: S.*.gecmis, S.banka, S.yapilan ve S.ayar'ı silmek; localStorage'ı temizlemek. Kod bitince program kendisi kaydeder ve yeniden çizer.";
     function talimat() {
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
         "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
         "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Haftalık Plan, Günlük Akış, Etkinlik Bankası, Veli Notu. Bunlar VAR; 'yapamıyorum' deme. ASLA 'programda yok', 'elimde yok', 'yapamıyorum' deyip durma ve öğretmene seçenek sorma: isteğe en yakın şeyi araçlarla HEMEN YAP, sonra ne yaptığını tek cümleyle söyle. Öğretmen düzeltirse ('4 değil 2 dedim') itiraz etmeden söylediği gibi yeniden yap. " +
+        "Hazır araçlar bir işi tam yapamıyorsa (yeni bir düzen, özel bölme, toplu değişiklik, plana/veli notuna yazı ekleme, birden çok sayfa…) serbest_kod ile programın içinde KENDİN yap; programda düğmesi olmaması engel değil. " +
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Günlük resim hakkı sınırlı (yaklaşık 30): gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
-        katalog() + "\n" + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
       var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
@@ -4950,6 +4972,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v2.9", "Asistan'a SERBEST EL: hazır düğmesi olmayan işleri de programın içinde kendisi kod yazarak yapar (özel düzenler, toplu değişiklikler, plana ya da veli notuna yazı, birden çok sayfa…). Her işten önce otomatik yedek alınır; beğenmezseniz Geri Al. Geçmiş kayıtlarınızı, etkinlik bankasını ve ayarları silmesi engellenmiştir."],
   ["v2.8", "Poster Yap'a yeni bölmeler: 1×2 (2 A4), 3×4 (12 A4), 4×4 (16 A4). Asistan istenen her A4 sayısına göre böler (2, 4, 6, 8, 9, 12, 16…)."],
   ["v2.7", "Asistan resim üretirken Figma olmazsa (günlük hak bitti, bağlantı yok) Canva'yı dener. Not: Canva programın içine yalnız küçük resim (yaklaşık 200 piksel) verebiliyor; küçük kartlarda iyi, büyük posterde bulanık olur."],
   ["v2.6", "Asistan RESİM ÜRETİYOR: kütüphanede olmayan bir resim istenince (kaplan, araba, zürafa…) Figma bağlantınız üzerinden yapay zekâyla 3D renkli ya da kalın çizgili boyama resmi üretir, Stüdyo'ya koyar; isterseniz poster yapar. Üretilen resimler Stüdyo'da 'Asistan'ın resimleri' bölümünde kalır (en çok 40). Figma'nın ücretsiz hakkı günde yaklaşık 30 resimdir; gece 03:00'te yenilenir."],
