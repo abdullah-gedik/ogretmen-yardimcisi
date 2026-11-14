@@ -326,6 +326,36 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .kn-kart img{width:100%;height:240px;object-fit:contain;background:#f4f6f8;border-radius:6px}
 .kn-ad{font-weight:700;font-size:14px;color:#22313f}.kn-dug{display:flex;gap:5px;flex-wrap:wrap}
 @media(max-width:800px){.kn-uc{grid-template-columns:1fr}}
+/* ---------- TELEFON ---------- */
+.mobMenu,.mobPerde{display:none}
+@media (max-width:800px){
+  :root{--ustYuk:56px;--agacGen:0px}
+  html.agac-dar{--agacGen:0px}
+  header.topbar{padding:0 10px;gap:8px}
+  .mobMenu{display:block;flex:0 0 auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:22px;line-height:1;border-radius:8px;width:42px;height:40px;cursor:pointer}
+  .basLogo{width:38px;height:38px;flex:0 0 38px}.basLogo svg{width:28px;height:28px}
+  .basAd h1{font-size:15px;white-space:normal}.basZoom,.basBayrak,.basKurum{display:none}
+  .agac{width:84vw;max-width:340px;transform:translateX(-105%);transition:transform .2s;z-index:70;box-shadow:4px 0 16px rgba(0,0,0,.25)}
+  html.mob-acik .agac{transform:none}
+  html.mob-acik .mobPerde{display:block;position:fixed;inset:var(--ustYuk) 0 0 0;background:rgba(0,0,0,.35);z-index:65}
+  html.agac-dar .agac .ag-ad,html.agac-dar .agac .tab .no,html.agac-dar .ag-ara{display:revert !important}
+  main{margin-left:0;padding:calc(var(--ustYuk) + 8px) 8px 30px 8px}
+  #zoomKap{transform:none !important;width:auto !important}
+  .sayfaBas{padding:6px 8px;gap:6px;top:calc(var(--ustYuk) + 2px)}
+  .sayfaBas h2{font-size:17px}
+  .asistan{padding:8px 10px}.as-ad{font-size:16px}.as-not{font-size:11px}
+  .as-ornek{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.as-ornek button{white-space:nowrap}
+  .kn-sol{padding:8px}.kn-sol .ipucu,.kn-grup{display:none}
+  #knListe{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+  .kn-konu{width:auto;white-space:nowrap;margin:0;flex:0 0 auto;border-left-width:4px}
+  .kn-ust h2{font-size:18px;width:100%}
+  .kn-sayfalar{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .kn-kart{padding:6px}.kn-kart img{height:170px}.kn-ad{font-size:13px}.kn-dug .d{flex:1;padding:6px 4px}
+  .kn-harfler{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}
+  .at-uc{display:flex;flex-direction:column}.at-uc>.kart:nth-child(2){order:-1}
+  .kart{min-width:0;max-width:100%}
+  table{max-width:100%}
+}
 .at-tasma{display:inline-flex;border:1px solid #b0bcc8;border-radius:8px;overflow:hidden;margin-left:8px}
 .at-tasma button{border:0;border-radius:0;background:#fff;padding:5px 9px;font:inherit;font-size:13px;cursor:pointer;color:#1a3550}
 .at-tasma button+button{border-left:1px solid #b0bcc8}
@@ -380,6 +410,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 </defs></svg>
 
 <header class="topbar" id="ust">
+  <button type="button" class="mobMenu" id="mobMenu" aria-label="Menü">☰</button>
   <div class="basLogo" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M6 12c5-2 10-2 14 1v20c-4-3-9-3-14-1z" fill="#1a4b8c"/><path d="M34 12c-5-2-10-2-14 1v20c4-3 9-3 14-1z" fill="#2e7d32"/><circle cx="20" cy="7" r="4.2" fill="#f9a825"/><circle cx="21.6" cy="6.2" r="3.4" fill="#fff"/></svg></div>
   <div class="basAd">
     <h1>Öğretmen Yardımcısı · 4-6 Yaş</h1>
@@ -856,7 +887,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.0";
+var SURUM = "v3.1";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1347,6 +1378,10 @@ function agacKur() {
     k.querySelector(".ag-bas").onclick = function () { k.classList.toggle("acik"); UI.klasor[ad] = k.classList.contains("acik"); sakla(); };
   });
   document.querySelectorAll(".agac .tab").forEach(function (t) { t.onclick = function () { gorunumAc(t.dataset.view, t.dataset.tur); }; });
+  function mobKapat() { document.documentElement.classList.remove("mob-acik"); }
+  $("mobMenu").onclick = function () { document.documentElement.classList.toggle("mob-acik"); };
+  document.body.appendChild(h("div", { class: "mobPerde", onclick: mobKapat }));
+  document.querySelectorAll(".agac .tab, .agac .ag-is").forEach(function (t) { t.addEventListener("click", function () { if (window.innerWidth <= 800) setTimeout(mobKapat, 50); }); });
   $("agacDaralt").onclick = function () { UI.dar = !UI.dar; document.documentElement.classList.toggle("agac-dar", UI.dar); sakla(); };
   document.documentElement.classList.toggle("agac-dar", !!UI.dar);
   $("agacAra").addEventListener("input", function () {
@@ -4975,6 +5010,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v3.1", "TELEFON GÖRÜNÜMÜ: dar ekranda menü sol üstteki ☰ düğmesinin arkasına gizlenir (bir bölüme dokununca kapanır); Asistan kutusu, Konular (yatay kaydırılan konu düğmeleri, ikişerli sayfa kartları) ve Etkinlik Stüdyosu (önce sayfa, altında araçlar) telefona sığar."],
   ["v3.0", "GitHub adresinde en üste mor '🤖 Asistan'a söylemek için tıklayın' düğmesi eklendi; Asistan'ın çalıştığı Claude sayfasını açar."],
   ["v2.9", "Asistan'a SERBEST EL: hazır düğmesi olmayan işleri de programın içinde kendisi kod yazarak yapar (özel düzenler, toplu değişiklikler, plana ya da veli notuna yazı, birden çok sayfa…). Her işten önce otomatik yedek alınır; beğenmezseniz Geri Al. Geçmiş kayıtlarınızı, etkinlik bankasını ve ayarları silmesi engellenmiştir."],
   ["v2.8", "Poster Yap'a yeni bölmeler: 1×2 (2 A4), 3×4 (12 A4), 4×4 (16 A4). Asistan istenen her A4 sayısına göre böler (2, 4, 6, 8, 9, 12, 16…)."],
