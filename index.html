@@ -918,7 +918,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.9";
+var SURUM = "v5.0";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -2215,7 +2215,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     var parca = [], enGen = 0, renkSira = 0;
     var olculer = satirlar.map(function (s) {
       if (!harfHarf) { var g = olcuTuval.measureText(s || " ").width; return { s: s, g: g }; }
-      var harfler = Array.from(s), gl = harfler.map(function (c) { return olcuTuval.measureText(c).width; });
+      var harfler = Array.from(s), gl = harfler.map(function (c) { var w = olcuTuval.measureText(c).width; return c === " " ? Math.max(w, L.boy * 0.3) + 2 * (kenarK(L) + (L.kenar2K || 0)) : w; }); // v5.0: harf harf yazıda (gökkuşağı, eğri) boşluk kenar çizgisine yenilmesin
       var g2 = gl.reduce(function (a, b) { return a + b; }, 0) + ha * Math.max(0, harfler.length - 1);
       return { s: s, g: g2, harfler: harfler, gl: gl };
     });
@@ -5364,6 +5364,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v5.0", "Gökkuşağı renkli ve eğri yazılarda kelimeler arasındaki boşluk artık görünüyor (önce iki boşluk gerekiyordu)."],
   ["v4.9", "Etkinlik Stüdyosu'nda Word'deki gibi hizalama düğmeleri her zaman üstte: Sola, Ortala, Sağa, İki yana. Seçili öğeleri hizalar (birden çok seçiliyse kendi aralarında, biri seçiliyse sayfaya göre); hiçbir şey seçili değilse sayfadaki bütün yazıları hizalar. İki yana yaslama çok satırlı yazıda satırları iki kenara yayar. Asistan'a 'isimleri sola hizala' da diyebilirsiniz. Asistan 'isimleri liste/tablo yap' denince artık Excel tablosu gibi düz, numaralı, sola hizalı liste kuruyor (eğri yazı yalnız istenirse). (Konular'daki hazır sayfaları ✎ Düzenle ile Stüdyo'da açınca aynı düğmeler orada da var.)"],
   ["v4.8", "Yer söyleyin, oraya yazsın: Asistan Stüdyo sayfasını milimetre ızgarasıyla görüyor; 'adı saatin üstüne', 'sol alt köşeye', 'kurdelenin içine yaz' derseniz tam oraya koyuyor. Yazıyı fareyle/parmakla sürükleyip kendiniz de taşıyabilirsiniz."],
   ["v4.7", "Asistan daha anlayışlı: emin olmadığı isteklerde önce kısa bir soru soruyor, anlayınca yapıyor; verdiğiniz örnek resme bakıp ona benzetiyor. Çocuk listesini fotoğraftan okuyup Sınıf listesine kendisi kaydediyor. Eğri (kemer gibi) yazı ve çıkartma gibi şekilli isimler yapabiliyor; bir sayfada birden çok isim (ÇOCUĞUN ADI 1, 2, 3 …) olabiliyor, uzun isimler kutuya sığdırılıyor. Stüdyo ekranında adlar gerçek haliyle görünüyor, PDF bütün çocukları çıkarıyor. Kişiye özel etkinlik: bir resmin üstüne her çocuğun adı şekilli yazılabiliyor (ör. Ali Kayra'nın Sofrası); ekler her ada göre doğru çekiliyor (Eslem'in, Emir'e, Elif'te). Asistan sayfayı yeniden kurarken sizin koyduğunuz fotoğrafları silmiyor."],
