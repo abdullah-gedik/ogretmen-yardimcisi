@@ -658,9 +658,9 @@ table.tb td.ort,table.tb th.ort{text-align:center}
         <div id="atYaziStil" class="at-stiller"></div>
       </div>
       <div class="at-sekme" id="atS-foto">
-        <button type="button" class="yukleD" id="atFotoSec">📷 Fotoğraf Seç</button>
-        <div class="birak" id="atBirak">Fotoğrafı buraya sürükleyin ya da <b>Ctrl+V</b> ile yapıştırın</div>
-        <input type="file" id="atFoto" accept="image/*" multiple class="gizli">
+        <button type="button" class="yukleD" id="atFotoSec">📂 Resim / PDF Seç</button>
+        <div class="birak" id="atBirak">Resmi ya da PDF'i buraya sürükleyin veya <b>Ctrl+V</b> ile yapıştırın</div>
+        <input type="file" id="atFoto" accept="image/*,application/pdf,.pdf" multiple class="gizli">
         <div class="ipucu">Sayfada fotoğraf çerçevesi varsa fotoğraf çerçevenin içine yerleşir.</div>
       </div>
       <div class="at-sekme" id="atS-duzen">
@@ -828,9 +828,9 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="sayfaBas" data-no="3" data-ad="Resimden Boyama Sayfası" data-araclar="geri,ileri,sil,onizle,yazdir,pdf"></div>
   <div class="iki">
     <div class="kart"><h3>Resim</h3>
-      <button type="button" class="yukleD" id="bySec">📂 Resim Seç</button>
-      <div class="birak" id="byBirak">Resmi buraya sürükleyin ya da <b>Ctrl+V</b> ile yapıştırın</div>
-      <input type="file" id="byDosya" accept="image/*" class="gizli">
+      <button type="button" class="yukleD" id="bySec">📂 Resim / PDF Seç</button>
+      <div class="birak" id="byBirak">Resmi ya da PDF'i buraya sürükleyin veya <b>Ctrl+V</b> ile yapıştırın</div>
+      <input type="file" id="byDosya" accept="image/*,application/pdf,.pdf" class="gizli">
       <div id="byKaldirK"></div>
       <label class="sat"><span>Başlık</span></label><input type="text" id="byBaslik" style="width:100%">
       <label class="sat"><span>Çizgi hassasiyeti (az → çok)</span><input type="range" id="byHassas" min="1" max="10"></label>
@@ -922,7 +922,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v5.3";
+var SURUM = "v5.4";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1142,7 +1142,7 @@ function pdfSayfaSec(ids, sec) { // tek görsel isteyen yerler (Poster) için: h
     var r = IMG[id], k = h("button", { type: "button", style: "border:2px solid #cfd8dc;border-radius:8px;background:#fff;padding:4px;cursor:pointer;font:inherit", onclick: function () { m.remove(); sec(id); } });
     var im = h("img", { src: r.img.src || "", alt: "" }); im.style.cssText = "width:100%;display:block"; k.appendChild(im); k.appendChild(h("div", { style: "font-size:12px", text: (i + 1) + ". sayfa" })); izg.appendChild(k);
   });
-  m = modalAc("Hangi sayfa poster olsun?", [izg], []);
+  m = modalAc(UI.view === "v-boyama" ? "Hangi sayfa boyamaya çevrilsin?" : "Hangi sayfa poster olsun?", [izg], []);
 }
 function yuklemeBagla(dugme, girdi, birak, cb, tekSayfa) {
   $(dugme).onclick = function () { $(girdi).click(); };
@@ -5430,7 +5430,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
     }, 40);
   }
   function ekle(id) { S.boyama.img = id[0]; durumKaydet(); ciz(); toast("Resim eklendi.", "iyi"); }
-  yuklemeBagla("bySec", "byDosya", "byBirak", ekle); YAPISTIR["v-boyama"] = ekle;
+  yuklemeBagla("bySec", "byDosya", "byBirak", ekle, true); YAPISTIR["v-boyama"] = ekle;
   $("byBaslik").addEventListener("input", function () { Bo().baslik = this.value; durumKaydetGec(); ciz(); });
   [["byHassas", "hassas"], ["byKalin", "kalin"]].forEach(function (a) { $(a[0]).addEventListener("change", function () { Bo()[a[1]] = +this.value; durumKaydet(); ciz(); }); });
   $("byYon").onchange = function () { Bo().yon = this.value; durumKaydet(); ciz(); };
@@ -5451,6 +5451,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v5.4", "Etkinlik Stüdyosu (Fotoğraf) ve Resimden Boyama'ya da 'Resim / PDF Seç' geldi: Stüdyo'da PDF'in her sayfası ayrı fotoğraf olarak eklenir; Boyama'da çok sayfalı PDF'te hangi sayfanın boyamaya çevrileceğini seçersiniz."],
   ["v5.3", "Konular'da bir etkinliğin resmine (ya da adına) tıklayınca etkinlik büyük açılıyor: ← Geri ile listeye dönülür, ‹ Önceki / Sonraki › ile diğer etkinliklere geçilir; Yazdır, PDF, Düzenle de orada. Her bölümün başlığında ← Geri düğmesi: bir önceki açtığınız ekrana döner (ör. Düzenle ile Stüdyo'ya geçtiyseniz Konular'a geri)."],
   ["v5.2", "Adlarla çoğalan sayfalarda sayfanın altında ‹ Geri / İleri › düğmeleri: ekranda o çocuğun sayfası görünür (düzenleme hepsine uygulanır). 'Aynı anda göster: 1 · 10 · 20 · 30' ile birden çok sayfa alt alta görünür; İleri sonraki gruba geçer."],
   ["v5.1", "1) Adlarla çoğalan sayfaların hepsi artık Stüdyo'da da alt alta görünüyor (yalnız 1. sayfada düzenlenir, diğerleri kendiliğinden değişir). 2) Asistan kayıtlı Sınıf listesini hatırlıyor: adları tekrar istemiyor, gerekirse okuyup düzeltiyor (ör. soyadlarını çıkarıyor). 3) Asistan kutusuna '📎 Yükle' düğmesi: resim ya da PDF ekleyin, Asistan okusun ya da sayfaya, postere, boyamaya koysun."],
