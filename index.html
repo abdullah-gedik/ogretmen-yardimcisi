@@ -500,7 +500,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 <main><div id="zoomKap">
 <a id="asistanGit" class="asistan-git" href="https://claude.ai/artifact/PmkyTSGh9j52kogYX1KeVn" target="_blank" rel="noopener"><span class="as-yuz">✨</span> <b>Asistan'a söylemek için tıklayın</b> <span>Asistan yalnız Claude sayfasında çalışır; burası yedek adres.</span> ➜</a>
 <div id="asistan" class="asistan" style="display:none">
-  <div class="as-ust"><span class="as-ad"><span class="as-yuz" id="asYuz">✨</span> Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk adlarını buraya değil Ayarlar → Sınıf listesi'ne yazın.</span></div>
+  <div class="as-ust"><span class="as-ad"><span class="as-yuz" id="asYuz">✨</span> Asistan'a söyle</span></div>
   <div class="as-sat"><textarea id="asGiris" rows="2" placeholder="Ör. Sabır konusu için boyama sayfası hazırla · Be harfinin 3 görevli sayfasını aç · Başlığı büyüt"></textarea>
     <button type="button" id="asMik" class="as-mik" style="display:none">🎤 Konuş</button><button type="button" id="asYap" class="as-yap">Yap ➜</button></div>
   <div id="asOrnek" class="as-ornek"><button type="button">Sabır konusunun boyama sayfasını aç</button><button type="button">Be harfinin 3 görevli sayfasını Stüdyo'da aç</button><button type="button">Kedili, "Hayvanları severim" yazan bir boyama sayfası yap</button></div>
@@ -516,7 +516,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="iki">
     <div>
       <div class="kart"><h3>1. Resimleri ekle</h3>
-        <div class="dikkat"><b>⚠ DİKKAT!</b> Resimler ve PDF bilgisayarınızda işlenir, dışarı gönderilmez. PDF'in her sayfası ayrı resim olarak eklenir. Program kapanınca resim listesi silinir (ayarlar saklanır). Net baskı için büyük/çözünürlüğü yüksek resim kullanın.</div>
         <button type="button" class="yukleD" id="rsSec">📂 Resim / PDF Seç</button>
         <div class="birak" id="rsBirak">Resimleri ya da PDF'i buraya sürükleyin veya kopyalayıp <b>Ctrl+V</b> ile yapıştırın</div>
         <input type="file" id="rsDosya" accept="image/*,application/pdf,.pdf" multiple class="gizli">
@@ -560,7 +559,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="iki">
     <div>
       <div class="kart"><h3>1. Görseli ekle</h3>
-        <div class="dikkat"><b>⚠ DİKKAT!</b> Görsel ve PDF bilgisayarınızda işlenir, dışarı gönderilmez. PDF'in birden çok sayfası varsa hangi sayfanın poster olacağını seçersiniz. Arka planı beyaz ya da saydam olan görsellerde kesim çizgisi şeklin etrafını izler.</div>
         <button type="button" class="yukleD" id="poSec">📂 Görsel / PDF Seç</button>
         <div class="birak" id="poBirak">Görseli ya da PDF'i buraya sürükleyin veya <b>Ctrl+V</b> ile yapıştırın</div>
         <input type="file" id="poDosya" accept="image/*,application/pdf,.pdf" class="gizli">
@@ -640,7 +638,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
         <label class="sat" id="atHarfAyar"><span>Harfler</span><select id="atHarfTur"><option value="buyuk">Türkçe büyük harf</option><option value="kucuk">Türkçe küçük harf</option><option value="elif">Elif-Ba harfleri</option></select></label>
         <div class="at-izgara" id="atIzgara"></div>
         <details class="at-ac" id="atWebKap"><summary>🌐 İnternetten resim ara</summary>
-          <div class="dikkat"><b>⚠ DİKKAT!</b> İnternet gerekir. Yalnız yazdığınız arama kelimesi Openverse'e ve Wikimedia Commons'a (serbest lisanslı resim arşivleri) gönderilir.</div>
           <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input type="search" id="atWebAra" style="flex:1 1 100%;min-width:0" placeholder="ör. kedi, cami, elma"><select id="atWebTur"><option value="">Hepsi</option><option value="illustration">Çizim</option><option value="photograph">Fotoğraf</option></select><button type="button" class="d d-ekle d-kucuk" id="atWebBul">Ara</button></div>
           <label class="onay"><input type="checkbox" id="atWebKaynak" checked><span>Resmin kaynağını sayfaya küçük yazıyla ekle</span></label>
           <div id="atWebSonuc" class="at-web"></div>
@@ -652,7 +649,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
         <div id="atYaziStil" class="at-stiller"></div>
       </div>
       <div class="at-sekme" id="atS-foto">
-        <div class="dikkat"><b>⚠ DİKKAT!</b> Fotoğraflar yalnız bu bilgisayarda işlenir, kaydedilmez; program kapanınca silinir. Çocuk fotoğrafı için veli izni alın.</div>
         <button type="button" class="yukleD" id="atFotoSec">📷 Fotoğraf Seç</button>
         <div class="birak" id="atBirak">Fotoğrafı buraya sürükleyin ya da <b>Ctrl+V</b> ile yapıştırın</div>
         <input type="file" id="atFoto" accept="image/*" multiple class="gizli">
@@ -783,7 +779,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
       <label class="sat"><span>Katılan öğrenci sayısı</span><input type="number" id="yeKatilim" min="0" max="99"></label>
       <label class="sat"><span>Açıklama / gözlem</span></label><textarea id="yeAciklama" rows="4"></textarea>
       <label class="sat"><span>Fotoğraf (isteğe bağlı)</span></label>
-      <div class="dikkat"><b>⚠ DİKKAT!</b> Fotoğraf küçültülerek yalnız bu tarayıcıda saklanır. Öğrenci yüzü görünen fotoğraf koymamaya dikkat edin.</div>
       <button type="button" class="yukleD" id="yeFotoSec">📷 Fotoğraf Seç</button><input type="file" id="yeFoto" accept="image/*" class="gizli">
       <div id="yeFotoOn" style="margin-top:6px"></div>
       <div style="display:flex;gap:8px;margin-top:8px"><button class="d d-kaydet" id="yeKaydet">Kaydet</button><button class="d d-acik" id="yeVazgec">Formu temizle</button></div>
@@ -822,7 +817,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="sayfaBas" data-no="3" data-ad="Resimden Boyama Sayfası" data-araclar="geri,ileri,sil,onizle,yazdir,pdf"></div>
   <div class="iki">
     <div class="kart"><h3>Resim</h3>
-      <div class="dikkat"><b>⚠ DİKKAT!</b> Resim bilgisayarınızda çizgiye çevrilir, dışarı gönderilmez. En iyi sonuç sade, net, az ayrıntılı resimlerle alınır.</div>
       <button type="button" class="yukleD" id="bySec">📂 Resim Seç</button>
       <div class="birak" id="byBirak">Resmi buraya sürükleyin ya da <b>Ctrl+V</b> ile yapıştırın</div>
       <input type="file" id="byDosya" accept="image/*" class="gizli">
@@ -862,7 +856,6 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 <section class="view" id="v-ayarlar">
   <div class="sayfaBas" data-no="6" data-ad="Ayarlar (Kurum ve Öğretmen)" data-araclar="geri,ileri"></div>
   <div class="kart" style="max-width:640px"><h3>Belgelerde görünecek bilgiler</h3>
-    <div class="ipucu" style="margin-bottom:8px">Bu bilgiler yalnız bu tarayıcıda saklanır, programın içine yazılmaz.</div>
     <label class="sat"><span>Kurum adı</span><input type="text" id="ayKurum" style="width:340px"></label>
     <label class="sat"><span>Öğretmenin adı soyadı</span><input type="text" id="ayOgretmen" style="width:340px"></label>
     <label class="sat"><span>Unvanı</span><input type="text" id="ayUnvan" style="width:340px" list="dlUnvan"></label>
@@ -875,7 +868,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
     <datalist id="dlUnvan"><option value="Kur'an Kursu Öğreticisi"><option value="4-6 Yaş Grubu Öğreticisi"></datalist>
   </div>
   <div class="kart" style="max-width:640px;margin-top:12px"><h3>Sınıf listesi (çocukların adları)</h3>
-    <div class="ipucu" style="margin-bottom:8px">Her satıra bir çocuğun adını yazın. Bu liste <b>yalnız bu cihazda</b> kalır: Asistan'a, Claude'a, Hugging Face'e, Figma'ya, yedeğe ya da GitHub'a gitmez. Etkinlik Stüdyosu'nda bir yazıya <b>ÇOCUĞUN ADI</b> yazarsanız (ya da Asistan'a "her çocuğa adıyla … yap" derseniz) Yazdır ve PDF her çocuk için ayrı sayfa çıkarır. Soyad yazmanız gerekmez.</div>
+    <div class="ipucu" style="margin-bottom:8px">Her satıra bir çocuğun adını yazın. Stüdyo'da bir yazıya <b>ÇOCUĞUN ADI</b> yazınca Yazdır ve PDF her çocuk için ayrı sayfa çıkarır.</div>
     <textarea id="aySinif" rows="8" style="width:100%;max-width:360px;font:inherit;font-size:16px;padding:8px;border:1px solid #cfd8dc;border-radius:8px" placeholder="Ali&#10;Zeynep&#10;Ömer"></textarea>
     <div class="ipucu" id="aySinifSay"></div>
   </div>
@@ -2729,7 +2722,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     if (l.length > 1) { var b = topluSinir(l); l.forEach(function (L) { var s2 = sinir(L), gw = s2.x2 - s2.x1; if (t === "sol" || t === "iki") L.x = b.x1 + gw / 2; else if (t === "orta") L.x = (b.x1 + b.x2) / 2; else L.x = b.x2 - gw / 2; }); }
     else { var L1 = l[0], s1 = sinir(L1), g1 = s1.x2 - s1.x1; if (t === "sol" || t === "iki") L1.x = pay + g1 / 2; else if (t === "orta") L1.x = o.W / 2; else L1.x = o.W - pay - g1 / 2; }
     durumKaydet(); ekranCiz(); try { panel(); } catch (e) {}
-    if (hepsi && !liste) toast("Sayfadaki bütün yazılar hizalandı. Yalnız bazılarını hizalamak için önce onları seçin (Ctrl+A hepsi, Shift+tık birkaçı). Geri Al ile dönebilirsiniz.", "iyi");
+    if (hepsi && !liste) toast("Bütün yazılar hizalandı.", "iyi");
     return l.length + " öğe hizalandı (" + t + ")";
   }
   function hizala(t) {
@@ -5364,7 +5357,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
-  ["v5.0", "Gökkuşağı renkli ve eğri yazılarda kelimeler arasındaki boşluk artık görünüyor (önce iki boşluk gerekiyordu)."],
+  ["v5.0", "Gökkuşağı renkli ve eğri yazılarda kelimeler arasındaki boşluk artık görünüyor (önce iki boşluk gerekiyordu). Sarı DİKKAT kutuları ve küçük uyarı yazıları kaldırıldı."],
   ["v4.9", "Etkinlik Stüdyosu'nda Word'deki gibi hizalama düğmeleri her zaman üstte: Sola, Ortala, Sağa, İki yana. Seçili öğeleri hizalar (birden çok seçiliyse kendi aralarında, biri seçiliyse sayfaya göre); hiçbir şey seçili değilse sayfadaki bütün yazıları hizalar. İki yana yaslama çok satırlı yazıda satırları iki kenara yayar. Asistan'a 'isimleri sola hizala' da diyebilirsiniz. Asistan 'isimleri liste/tablo yap' denince artık Excel tablosu gibi düz, numaralı, sola hizalı liste kuruyor (eğri yazı yalnız istenirse). (Konular'daki hazır sayfaları ✎ Düzenle ile Stüdyo'da açınca aynı düğmeler orada da var.)"],
   ["v4.8", "Yer söyleyin, oraya yazsın: Asistan Stüdyo sayfasını milimetre ızgarasıyla görüyor; 'adı saatin üstüne', 'sol alt köşeye', 'kurdelenin içine yaz' derseniz tam oraya koyuyor. Yazıyı fareyle/parmakla sürükleyip kendiniz de taşıyabilirsiniz."],
   ["v4.7", "Asistan daha anlayışlı: emin olmadığı isteklerde önce kısa bir soru soruyor, anlayınca yapıyor; verdiğiniz örnek resme bakıp ona benzetiyor. Çocuk listesini fotoğraftan okuyup Sınıf listesine kendisi kaydediyor. Eğri (kemer gibi) yazı ve çıkartma gibi şekilli isimler yapabiliyor; bir sayfada birden çok isim (ÇOCUĞUN ADI 1, 2, 3 …) olabiliyor, uzun isimler kutuya sığdırılıyor. Stüdyo ekranında adlar gerçek haliyle görünüyor, PDF bütün çocukları çıkarıyor. Kişiye özel etkinlik: bir resmin üstüne her çocuğun adı şekilli yazılabiliyor (ör. Ali Kayra'nın Sofrası); ekler her ada göre doğru çekiliyor (Eslem'in, Emir'e, Elif'te). Asistan sayfayı yeniden kurarken sizin koyduğunuz fotoğrafları silmiyor."],
