@@ -915,7 +915,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.5";
+var SURUM = "v4.6";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -4091,7 +4091,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       mesajlar[0] = { role: "user", content: talimat() + "\n\n" + (bag.length ? "(Aşağıda öğretmenle önceki konuşmalarınız var; 'onu', 'aynısını', 'az önceki', 'dünkü' derse bunlara bak.)\n\n" : "") + mesajlar[0].content };
       ekResimler().then(function (ek) {
         if (ek.blobs.length) mesajlar[mesajlar.length - 1] = { role: "user", content: mesajlar[mesajlar.length - 1].content + "\n\n(" + ek.not + ")" };
-        var se = { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }; if (ek.blobs.length) se.images = ek.blobs;
+        var se = { tools: ARACLAR_AS, modelTier: "complex", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }; if (ek.blobs.length) se.images = ek.blobs;
         return sample(mesajlar, se);
       }).then(function (r) {
         var t = (r && r.text) || "Tamam."; cevap.textContent = t; kayit.push({ t: Date.now(), q: q, a: String(t).slice(0, 600) + (sonVideo ? "\n🎬 " + sonVideo : "") }); sonVideo = ""; kayit = kayit.slice(-40); kayitSakla(true); gecmisCiz(); giris.value = ""; giris.dataset.taban = "";
@@ -4111,7 +4111,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         if (!b) return;
         var istek = talimat() + "\n\nÖğretmenin isteği: " + q + "\nSenin cevabın: " + ilk + "\n\nEkteki resim, Stüdyo'da şu an duran sayfa (A4). Bir öğretmen gözüyle bak: üst üste binen ya da sayfadan taşan öğe, kopuk/orantısız parça, okunmayan ya da çok küçük yazı, boş kalmış büyük alan, isteğe uymayan bir şey var mı? " +
           "Varsa önce sayfayi_oku, sonra oge_degistir ile düzelt. Yoksa hiçbir şeye dokunma. En sonda tek kısa cümle yaz: ne düzelttin ya da 'Kontrol ettim, sayfa düzgün.'";
-        return sample(istek, { images: [b], tools: ARACLAR_AS.filter(function (t) { return t.name === "sayfayi_oku" || t.name === "oge_degistir"; }), modelTier: "quick", cache: false }).then(function (r2) {
+        return sample(istek, { images: [b], tools: ARACLAR_AS.filter(function (t) { return t.name === "sayfayi_oku" || t.name === "oge_degistir"; }), modelTier: "default", cache: false }).then(function (r2) {
           cevap.textContent = ilk + "\n\n👀 " + ((r2 && r2.text) || "Kontrol ettim.").trim();
         }).catch(function () { cevap.textContent = ilk; });
       });
@@ -5233,6 +5233,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.6", "Asistan artık Claude'un en güçlü ayarıyla düşünüyor (daha akıllı, biraz daha yavaş); yaptığı sayfayı kontrol etmesi de daha dikkatli."],
   ["v4.5", "PDF desteği ve Asistan'ın gözü: Resim Yerleştirme'de 'Resim / PDF Seç' (PDF'in her sayfası ayrı resim olur) ve Poster Yap'ta 'Görsel / PDF Seç' (çok sayfalı PDF'te hangi sayfanın poster olacağını seçersiniz). PDF bilgisayarınızda/telefonunuzda açılır, dışarı gitmez (ilk kullanımda PDF okuyucunun kodu internetten iner). Poster Yap'a 'Tek A4 (bölmeden)' eklendi. Asistan artık bu ekranlarda yüklediğiniz resimlerin içini görüyor: 'kedili olanı 4 A4 poster yap', 'PDF'in 3. sayfasını boyamaya çevir', 'ikinci resmi sil' gibi istekleri yapar."],
   ["v4.4", "Asistan'ın resmi değişti: konuşma balonu içinde sevimli robot."],
   ["v4.3", "Telefonda Claude sayfasında daha çok yer: Claude'un kendi üst çubuğu (yorum ve Sohbet et düğmeleri) kaldırılamadığı için programın mavi başlığı telefonda gizlendi; menü (☰) sağ üstte küçük düğme oldu."],
