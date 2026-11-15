@@ -314,6 +314,8 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .asistan-git{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#6a1b9a;color:#fff;text-decoration:none;border-radius:12px;padding:12px 16px;margin:0 0 12px;font-size:17px}
 .asistan-git span{font-size:13px;opacity:.85;flex:1}.asistan-git:hover{background:#4a148c}
 .at-usil{position:absolute;top:2px;right:2px;background:#e53935;color:#fff;border-radius:6px;font-size:12px;padding:1px 4px;line-height:1.3;cursor:pointer}
+.as-alt{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.as-alt button{border:1px solid #d1c4e9;background:#fff;color:#4a148c;border-radius:8px;padding:4px 10px;font:inherit;font-size:13px;cursor:pointer}.as-alt button.acik{background:#ede7f6}
+.as-gecmis{margin-top:6px;max-height:320px;overflow:auto;border:1px solid #e1bee7;border-radius:10px;background:#fff}.as-gk{padding:7px 10px;border-bottom:1px solid #f3e5f5;cursor:pointer}.as-gk:hover{background:#faf5fc}.as-gk small{color:#8e7a9e;font-size:11px}.as-gk b{display:block;color:#4a148c;font-size:13px}.as-gk span{display:block;color:#555;font-size:12px;white-space:pre-wrap}.as-gbos{padding:10px;color:#777;font-size:13px}.as-gsil{display:block;margin:8px auto;border:0;background:#c62828;color:#fff;border-radius:8px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}
 .as-cevap{margin-top:8px;background:#f3e5f5;border-radius:10px;padding:8px 12px;color:#311b92;white-space:pre-wrap}
 @media(max-width:600px){.as-sat{flex-wrap:wrap}.as-sat textarea{flex:1 1 100%}.as-yap,.as-mik{flex:1}}
 .kn-uc{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
@@ -491,6 +493,8 @@ table.tb td.ort,table.tb th.ort{text-align:center}
     <button type="button" id="asMik" class="as-mik" style="display:none">🎤 Konuş</button><button type="button" id="asYap" class="as-yap">Yap ➜</button></div>
   <div id="asOrnek" class="as-ornek"><button type="button">Sabır konusunun boyama sayfasını aç</button><button type="button">Be harfinin 3 görevli sayfasını Stüdyo'da aç</button><button type="button">Kedili, "Hayvanları severim" yazan bir boyama sayfası yap</button></div>
   <div id="asCevap" class="as-cevap" style="display:none"></div>
+  <div id="asAlt" class="as-alt" style="display:none"><button type="button" id="asGecBtn" title="Önceki istekleriniz ve Asistan'ın cevapları">🕘 Geçmiş</button><button type="button" id="asYeni" title="Asistan önceki konuşmaları dikkate almadan yeni bir konuya başlar (geçmiş silinmez)">✚ Yeni konu</button></div>
+  <div id="asGecmis" class="as-gecmis" style="display:none"></div>
 </div>
 
 <!-- ================= 4 RESİM YERLEŞTİRME ================= -->
@@ -895,7 +899,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.0";
+var SURUM = "v4.1";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3666,8 +3670,48 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     asistanBasla.oldu = true; CLAUDE_ORTAM = true; claudeOrtamAyarla();
     if (ASISTAN_YUZ) { var yz = $("asYuz"); yz.textContent = ""; yz.appendChild(h("img", { src: ASISTAN_YUZ, alt: "" })); }
     var kontrolGerek = false, resimVar = false;
-    var kap = $("asistan"), giris = $("asGiris"), cevap = $("asCevap"), mik = $("asMik"), gecmis = [], calisiyor = false, sample = null, dikte = null;
-    claude.use("sample").then(function (s) { sample = s; if (!s) return; kap.style.display = ""; s.limits().then(function (l) { resimVar = !!(l && l.images); }).catch(function () {}); });
+    var kap = $("asistan"), giris = $("asGiris"), cevap = $("asCevap"), mik = $("asMik"), calisiyor = false, sample = null, dikte = null;
+    /* v4.1 Asistan geçmişi: bu cihazda (localStorage) ve Claude hesabınızın özel alanında (db, data/users/<id>) saklanır; aynı hesapla açılan her cihazda görünür */
+    var AS_ANAHTAR = "ogretmenYardimcisi_asistan", kayit = [], silindi = 0, asDoc = null, yaziyor = Promise.resolve(), baglamT = 0;
+    try { var ky = JSON.parse(localStorage.getItem(AS_ANAHTAR) || "{}"); kayit = Array.isArray(ky.liste) ? ky.liste : []; silindi = +ky.silindi || 0; } catch (e) { kayit = []; }
+    function kayitBirlestir(a, b) {
+      var m = {}; a.concat(b || []).forEach(function (k) { if (k && k.t > silindi && k.q) m[k.t + "|" + k.q] = k; });
+      return Object.keys(m).map(function (x) { return m[x]; }).sort(function (x, y) { return x.t - y.t; }).slice(-40);
+    }
+    function kayitSakla(bulut) {
+      try { localStorage.setItem(AS_ANAHTAR, JSON.stringify({ liste: kayit, silindi: silindi })); } catch (e) {}
+      if (!bulut || !asDoc) return;
+      yaziyor = yaziyor.then(function () { return asDoc.get(); }).then(function (sn) {
+        var d = sn && sn.exists ? sn.data() || {} : {}; if (+d.silindi > silindi) silindi = +d.silindi;
+        kayit = kayitBirlestir(kayit, d.liste);
+        return asDoc.set({ liste: kayit, silindi: silindi, guncel: Date.now() });
+      }).catch(function () {});
+    }
+    function gecmisCiz() {
+      var g = $("asGecmis"); if (g.style.display === "none") return; g.innerHTML = "";
+      if (!kayit.length) { g.appendChild(h("div", { class: "as-gbos", text: "Henüz geçmiş yok. Asistan'a söylediğiniz her şey burada birikir; aynı Claude hesabıyla açtığınız her cihazda görünür." })); return; }
+      kayit.slice().reverse().forEach(function (k) {
+        var d = new Date(k.t), zt = d.toLocaleDateString("tr-TR", { day: "numeric", month: "long" }) + " " + d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+        g.appendChild(h("div", { class: "as-gk", title: "Bu isteği yeniden yazmak için dokunun", onclick: function () { giris.value = k.q; giris.focus(); } }, [h("small", { text: zt }), h("b", { text: k.q }), h("span", { text: String(k.a || "").slice(0, 220) })]));
+      });
+      g.appendChild(h("button", { type: "button", class: "as-gsil", text: "🗑 Geçmişi sil", onclick: function () {
+        onayla("Asistan'ın bütün geçmişi silinsin mi? Bu cihazda ve aynı hesapla açtığınız diğer cihazlarda silinir; geri getirilemez.", function () {
+          silindi = Date.now(); kayit = []; baglamT = silindi; kayitSakla(false);
+          if (asDoc) yaziyor = yaziyor.then(function () { return asDoc.set({ liste: [], silindi: silindi, guncel: Date.now() }); }).catch(function () {});
+          gecmisCiz(); toast("Asistan geçmişi silindi.", "iyi");
+        }); } }));
+    }
+    $("asGecBtn").onclick = function () { var g = $("asGecmis"), ac = g.style.display === "none"; g.style.display = ac ? "" : "none"; $("asGecBtn").classList.toggle("acik", ac); gecmisCiz(); };
+    $("asYeni").onclick = function () { baglamT = Date.now(); cevap.style.display = ""; cevap.textContent = "Yeni konu: önceki konuşmaları dikkate almadan başlıyorum. Geçmiş silinmedi."; };
+    Promise.all([claude.use("db"), claude.use("user")]).then(function (r) {
+      var db = r[0], us = r[1]; if (!db || !us) return null;
+      return us.id().then(function (id) { if (!id) return null; asDoc = db.doc("data/users/" + id + "/asistan"); return asDoc.get(); });
+    }).then(function (sn) {
+      if (!sn || !sn.exists) { if (asDoc && kayit.length) kayitSakla(true); return; } // eski cihaz kayıtlarını hesaba taşı
+      var d = sn.data() || {}; if (+d.silindi > silindi) silindi = +d.silindi;
+      kayit = kayitBirlestir(kayit, d.liste); kayitSakla(JSON.stringify(kayit) !== JSON.stringify(d.liste || [])); gecmisCiz(); // bu cihazda olup hesapta olmayan varsa hesaba yaz
+    }).catch(function () {});
+    claude.use("sample").then(function (s) { sample = s; if (!s) return; kap.style.display = ""; $("asAlt").style.display = ""; s.limits().then(function (l) { resimVar = !!(l && l.images); }).catch(function () {}); });
     claude.use("dictation").then(function (d) { dikte = d; if (!d) return; mik.style.display = "";
       d.onPartial(function (o) { giris.value = (giris.dataset.taban || "") + o.text; });
       d.onFinal(function (o) { giris.dataset.taban = (giris.dataset.taban || "") + o.text + " "; giris.value = giris.dataset.taban; });
@@ -3914,17 +3958,19 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         "Hazır araçlar bir işi tam yapamıyorsa (yeni bir düzen, özel bölme, toplu değişiklik, birden çok sayfa…) serbest_kod ile programın içinde KENDİN yap; programda düğmesi olmaması engel değil. " +
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
-        "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Günlük resim hakkı sınırlı (yaklaşık 30): gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
+        "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Resim üretme hakkı sınırlı: gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
         katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
       var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
       if (dikte && mik.classList.contains("dinliyor")) dikte.stop().catch(function () {});
       calisiyor = true; kontrolGerek = false; $("asYap").disabled = true; cevap.style.display = ""; cevap.textContent = "Düşünüyorum…";
-      var mesajlar = gecmis.slice(-6).concat([{ role: "user", content: (gecmis.length ? "" : talimat() + "\n\n") + "İstek: " + q }]);
-      if (gecmis.length) mesajlar[0] = { role: "user", content: talimat() + "\n\n" + mesajlar[0].content };
+      var bag = kayit.filter(function (k) { return k.t > baglamT; }).slice(-6), mesajlar = [];
+      bag.forEach(function (k) { mesajlar.push({ role: "user", content: "İstek: " + k.q }, { role: "assistant", content: String(k.a || "Tamam.") }); });
+      mesajlar.push({ role: "user", content: "İstek: " + q });
+      mesajlar[0] = { role: "user", content: talimat() + "\n\n" + (bag.length ? "(Aşağıda öğretmenle önceki konuşmalarınız var; 'onu', 'aynısını', 'az önceki', 'dünkü' derse bunlara bak.)\n\n" : "") + mesajlar[0].content };
       sample(mesajlar, { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }).then(function (r) {
-        var t = (r && r.text) || "Tamam."; cevap.textContent = t; gecmis.push({ role: "user", content: "İstek: " + q }, { role: "assistant", content: t }); giris.value = ""; giris.dataset.taban = "";
+        var t = (r && r.text) || "Tamam."; cevap.textContent = t; kayit.push({ t: Date.now(), q: q, a: String(t).slice(0, 600) }); kayit = kayit.slice(-40); kayitSakla(true); gecmisCiz(); giris.value = ""; giris.dataset.taban = "";
         if (kontrolGerek && resimVar && UI.view === "v-atolye") return gozdenGecir(q, t);
       }).catch(function (e) {
         cevap.textContent = e && e.code === "rate_limited" ? "Şu an çok istek var; biraz sonra yeniden deneyin." : e && e.code === "not_granted" ? "Asistan'a izin verilmedi. İzin vermek için sayfayı yenileyip yeniden deneyin." : "Olmadı: " + ((e && e.message) || e);
@@ -5051,6 +5097,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.1", "Asistan artık geçmişi hatırlıyor: söylediğiniz her şey ve cevapları saklanır (son 40), sayfayı kapatıp açınca da durur; aynı Claude hesabıyla açtığınız telefon ve bilgisayarda aynı geçmiş görünür. Asistan son 6 konuşmayı dikkate alır (\"az önceki sayfayı büyüt\" gibi). 🕘 Geçmiş düğmesiyle eski istekleri görüp tekrar kullanabilir, kırmızı düğmeyle silebilirsiniz; ✚ Yeni konu, eski konuşmaları dikkate almadan başlar."],
   ["v4.0", "Asistan resimleri artık önce Hugging Face ile çiziyor (ücretsiz, Figma kredisi harcamaz; 3D renkli ve kalın çizgili boyama). Hugging Face o an çizemezse (günlük ücretsiz süre doldu vb.) kendiliğinden Figma'ya geçer."],
   ["v3.9", "Asistan başka bir Figma hesabına geçmeye hazır (ör. öğretmen hesabı / Figma for Education): bağlı hesap değişince kendine yeni dosya açar ve eski \"hak bitti\" kaydını unutur. Hak bitince ne zaman yenileneceğini Figma'nın verdiği saatle söyler (günlük ya da aylık)."],
   ["v3.8", "Menü sadeleşti: Planlama (Haftalık Plan, Günlük Akış Programı, Etkinlik Bankası) ve Veli ve Kayıtlar (Veli Bilgilendirme Notu, Yapılan Etkinlikler) bölümleri kaldırıldı. Eski kayıtlarınız silinmedi, yedekte durur. Ayarlar 6, Kâğıt ve Baskı Bilgileri 7 oldu. Konulardaki hazır veli mektubu sayfaları duruyor."],
