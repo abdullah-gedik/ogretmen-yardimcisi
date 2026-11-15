@@ -314,6 +314,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 .asistan-git{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#6a1b9a;color:#fff;text-decoration:none;border-radius:12px;padding:12px 16px;margin:0 0 12px;font-size:17px}
 .asistan-git span{font-size:13px;opacity:.85;flex:1}.asistan-git:hover{background:#4a148c}
 .at-usil{position:absolute;top:2px;right:2px;background:#e53935;color:#fff;border-radius:6px;font-size:12px;padding:1px 4px;line-height:1.3;cursor:pointer}
+.as-video{margin-top:8px;display:flex;gap:10px;align-items:center;background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:8px}.as-video img{width:120px;border-radius:8px}.as-video b{display:block;color:#5d4037}.as-video small{display:block;color:#6d4c41;font-size:12px}.as-vbtn{display:inline-block;margin:6px 0;background:#e65100;color:#fff;border-radius:8px;padding:8px 14px;text-decoration:none;font-weight:700}
 .as-alt{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.as-alt button{border:1px solid #d1c4e9;background:#fff;color:#4a148c;border-radius:8px;padding:4px 10px;font:inherit;font-size:13px;cursor:pointer}.as-alt button.acik{background:#ede7f6}
 .as-gecmis{margin-top:6px;max-height:320px;overflow:auto;border:1px solid #e1bee7;border-radius:10px;background:#fff}.as-gk{padding:7px 10px;border-bottom:1px solid #f3e5f5;cursor:pointer}.as-gk:hover{background:#faf5fc}.as-gk small{color:#8e7a9e;font-size:11px}.as-gk b{display:block;color:#4a148c;font-size:13px}.as-gk span{display:block;color:#555;font-size:12px;white-space:pre-wrap}.as-gbos{padding:10px;color:#777;font-size:13px}.as-gsil{display:block;margin:8px auto;border:0;background:#c62828;color:#fff;border-radius:8px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}
 .as-cevap{margin-top:8px;background:#f3e5f5;border-radius:10px;padding:8px 12px;color:#311b92;white-space:pre-wrap}
@@ -488,11 +489,12 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 <main><div id="zoomKap">
 <a id="asistanGit" class="asistan-git" href="https://claude.ai/artifact/PmkyTSGh9j52kogYX1KeVn" target="_blank" rel="noopener"><span class="as-yuz">✨</span> <b>Asistan'a söylemek için tıklayın</b> <span>Asistan yalnız Claude sayfasında çalışır; burası yedek adres.</span> ➜</a>
 <div id="asistan" class="asistan" style="display:none">
-  <div class="as-ust"><span class="as-ad"><span class="as-yuz" id="asYuz">✨</span> Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk ve veli adı yazmayın.</span></div>
+  <div class="as-ust"><span class="as-ad"><span class="as-yuz" id="asYuz">✨</span> Asistan'a söyle</span><span class="as-not">İsteğiniz Claude'a gider; çocuk adlarını buraya değil Ayarlar → Sınıf listesi'ne yazın.</span></div>
   <div class="as-sat"><textarea id="asGiris" rows="2" placeholder="Ör. Sabır konusu için boyama sayfası hazırla · Be harfinin 3 görevli sayfasını aç · Başlığı büyüt"></textarea>
     <button type="button" id="asMik" class="as-mik" style="display:none">🎤 Konuş</button><button type="button" id="asYap" class="as-yap">Yap ➜</button></div>
   <div id="asOrnek" class="as-ornek"><button type="button">Sabır konusunun boyama sayfasını aç</button><button type="button">Be harfinin 3 görevli sayfasını Stüdyo'da aç</button><button type="button">Kedili, "Hayvanları severim" yazan bir boyama sayfası yap</button></div>
   <div id="asCevap" class="as-cevap" style="display:none"></div>
+  <div id="asVideo" class="as-video" style="display:none"></div>
   <div id="asAlt" class="as-alt" style="display:none"><button type="button" id="asGecBtn" title="Önceki istekleriniz ve Asistan'ın cevapları">🕘 Geçmiş</button><button type="button" id="asYeni" title="Asistan önceki konuşmaları dikkate almadan yeni bir konuya başlar (geçmiş silinmez)">✚ Yeni konu</button></div>
   <div id="asGecmis" class="as-gecmis" style="display:none"></div>
 </div>
@@ -860,6 +862,11 @@ table.tb td.ort,table.tb th.ort{text-align:center}
     <datalist id="dlYas"><option value="4 yaş"><option value="5 yaş"><option value="4-5 yaş"><option value="5-6 yaş"><option value="4-6 yaş"></datalist>
     <datalist id="dlUnvan"><option value="Kur'an Kursu Öğreticisi"><option value="4-6 Yaş Grubu Öğreticisi"></datalist>
   </div>
+  <div class="kart" style="max-width:640px;margin-top:12px"><h3>Sınıf listesi (çocukların adları)</h3>
+    <div class="ipucu" style="margin-bottom:8px">Her satıra bir çocuğun adını yazın. Bu liste <b>yalnız bu cihazda</b> kalır: Asistan'a, Claude'a, Hugging Face'e, Figma'ya, yedeğe ya da GitHub'a gitmez. Etkinlik Stüdyosu'nda bir yazıya <b>ÇOCUĞUN ADI</b> yazarsanız (ya da Asistan'a "her çocuğa adıyla … yap" derseniz) Yazdır ve PDF her çocuk için ayrı sayfa çıkarır. Soyad yazmanız gerekmez.</div>
+    <textarea id="aySinif" rows="8" style="width:100%;max-width:360px;font:inherit;font-size:16px;padding:8px;border:1px solid #cfd8dc;border-radius:8px" placeholder="Ali&#10;Zeynep&#10;Ömer"></textarea>
+    <div class="ipucu" id="aySinifSay"></div>
+  </div>
 </section>
 
 <div class="telif" id="telif"></div>
@@ -899,7 +906,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.1";
+var SURUM = "v4.2";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -908,6 +915,9 @@ function h(tag, at, ic) {
   if (ic) (Array.isArray(ic) ? ic : [ic]).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
   return e;
 }
+var SINIF_ANAHTAR = "ogretmenYardimcisi_sinif"; // çocuk adları: yalnız bu cihazda; S'ye, yedeğe, Asistan'a girmez
+function sinifListesi() { var t = ""; try { t = localStorage.getItem(SINIF_ANAHTAR) || ""; } catch (e) {} var g = {}; return t.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(function (x) { if (!x || g[x]) return false; g[x] = 1; return true; }).slice(0, 60); }
+var AD_YER = /ÇOCUĞUN ADI|\{AD\}/g;
 function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function trKucuk(s) { return String(s || "").replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase().replace(/ı/g, "i").replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ö/g, "o").replace(/ç/g, "c"); }
 function trTarih(iso) { if (!iso) return ""; var p = iso.split("-"); return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : iso; }
@@ -3802,6 +3812,35 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         return bak();
       }).then(function (src) { return resimYukle(src).then(beyaziSil); });
     }
+    function videoUret(g) { // v4.2: Hugging Face Z-Image (resim) + Wan 2.2 (resimden video); sonuç bağlantı olarak gelir
+      if (!mcp) return Promise.resolve("Video bu görünümde yapılamıyor (Hugging Face bağlantısı yok).");
+      var sahne = String(g.sahne || "").trim(), hareket = String(g.hareket || "gentle smooth motion").trim(), ad = String(g.ad || "Video").slice(0, 40), sure = +g.sure === 5 ? 5 : 3, onizleme = "";
+      if (!sahne) return Promise.resolve("sahne (İngilizce tarif) gerekli");
+      cevap.textContent = "🎬 " + ad + ": önce resim çiziliyor…";
+      return mcp.callTool("huggingface", "gr1_z_image_turbo_generate", { prompt: sahne + ", cute and friendly, for young children, soft light, no text, no letters", resolution: "1280x720 ( 16:9 )" }).then(function (r) {
+        var bl = r.content || [], im = bl.filter(function (x) { return x.type === "image" && x.data; })[0], yazi = bl.filter(function (x) { return x.type === "text"; }).map(function (x) { return x.text; }).join(" ");
+        var u = (yazi.match(/https?:\/\/\S+?\.(?:webp|png|jpe?g)/i) || [])[0]; if (!u) throw new Error("resmin bağlantısı alınamadı");
+        if (im) onizleme = "data:" + (im.mimeType || "image/webp") + ";base64," + im.data;
+        cevap.textContent = "🎬 " + ad + ": resim hazır, şimdi canlandırılıyor… (1-3 dakika sürebilir)";
+        return mcp.callTool("huggingface", "dynamic_space", { operation: "invoke", space_name: "zerogpu-aoti/wan2-2-fp8da-aoti-faster", tool_name: "wan2_2_fp8da_aoti_faster_generate_video", parameters: { input_image: u, prompt: hareket + ", smooth natural motion, keep the same style", duration_seconds: sure } });
+      }).then(function (r) {
+        var yazi = (r.content || []).filter(function (x) { return x.type === "text"; }).map(function (x) { return x.text; }).join(" ") + " " + (typeof r.payload === "string" ? r.payload : "");
+        var v = (yazi.match(/https?:\/\/\S+?\.mp4/i) || [])[0]; if (!v) throw new Error("video bağlantısı gelmedi");
+        videoGoster(ad, v, onizleme); sonVideo = v;
+        return "video hazır (" + sure + " sn). Bağlantı Asistan kutusunda 'Videoyu aç' düğmesinde; öğretmene açıp telefona indirmesini, bağlantının birkaç saat sonra geçersiz olacağını söyle.";
+      }).catch(function (e) {
+        var m = String((e && e.message) || e || "");
+        if (e && (e.code === "server_not_connected" || e.code === "needs_reauth")) return "Hugging Face bağlantısı yok ya da süresi dolmuş: Ayarlar → Bağdaştırıcılar → huggingface'i yeniden bağlayın.";
+        if (/quota|gpu|exceeded|limit/i.test(m)) return "Hugging Face'in bugünkü ücretsiz video süresi doldu; birkaç saat sonra ya da yarın yeniden deneyin.";
+        return "Video yapılamadı: " + m.slice(0, 160);
+      });
+    }
+    var sonVideo = "";
+    function videoGoster(ad, url, onizleme) {
+      var k = $("asVideo"); k.innerHTML = ""; k.style.display = "";
+      if (onizleme) k.appendChild(h("img", { src: onizleme, alt: "" }));
+      k.appendChild(h("div", {}, [h("b", { text: "🎬 " + ad + " videosu hazır" }), h("a", { href: url, target: "_blank", rel: "noopener", class: "as-vbtn", text: "▶ Videoyu aç / indir" }), h("small", { text: "Video yeni sekmede açılır; oradan ⋮ ya da sağ tık → İndir ile telefona kaydedin. Bağlantı birkaç saat sonra geçersiz olur." })]));
+    }
     function resimUret(g) {
       if (!mcp) return Promise.resolve("Resim üretme bu görünümde kullanılamıyor (Hugging Face / Figma bağlantısı yok).");
       var konu = String(g.konu || "").trim(), ad = String(g.ad || konu).slice(0, 40), boyama = g.tur === "boyama", dosya, kucuk = false;
@@ -3855,6 +3894,9 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       { name: "resim_uret", description: "Kütüphanede OLMAYAN bir resmi yapay zekâyla üretir (15-40 sn) ve Stüdyo'ya koyar; resim kütüphaneye de eklenir. konu: resmin İNGİLİZCE kısa tarifi (ör. 'a cute baby tiger sitting'). ad: Türkçe adı. tur: renkli (3D) ya da boyama (kalın çizgili). yerlestir: yeni_sayfa (büyük, ortada, baslik ile) ya da ekle (var olan sayfaya).",
         inputSchema: { type: "object", properties: { konu: { type: "string" }, ad: { type: "string" }, tur: { type: "string", enum: ["renkli", "boyama"] }, yerlestir: { type: "string", enum: ["yeni_sayfa", "ekle"] }, baslik: { type: "string" } }, required: ["konu", "ad", "tur"] },
         execute: function (g) { return resimUret(g); } },
+      { name: "video_uret", description: "3-5 saniyelik kısa video üretir (Hugging Face; 1-3 dk sürer, günde birkaç tane). Önce bir resim çizer, sonra onu canlandırır. Video programın içinde oynamaz; öğretmene açıp indirebileceği bir bağlantı verilir (bağlantı birkaç saat geçerli). sahne: İNGİLİZCE resim tarifi (ör. 'a cute baby turtle on green grass, 3D animated movie style'). hareket: İNGİLİZCE hareket tarifi (ör. 'the turtle waves and smiles, gentle camera'). ad: Türkçe kısa ad. sure: 3 ya da 5.",
+        inputSchema: { type: "object", properties: { sahne: { type: "string" }, hareket: { type: "string" }, ad: { type: "string" }, sure: { type: "number", enum: [3, 5] } }, required: ["sahne", "hareket", "ad"] },
+        execute: function (g) { return videoUret(g); } },
       { name: "hazir_sayfa", description: "Hazır sayfalardan birini açar (konu ve sayfa kimlikleri talimattaki KATALOG'da). eylem: goster (Konular ekranında), duzenle (Stüdyo'da açar), pdf (PDF indirir).",
         inputSchema: { type: "object", properties: { konu: { type: "string" }, sayfa: { type: "string" }, harf: { type: "string", description: "elifba için Arap harfi, ör. ب" }, eylem: { type: "string", enum: ["goster", "duzenle", "pdf"] } }, required: ["konu", "eylem"] },
         execute: function (g) {
@@ -3950,7 +3992,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       "sekil {tip:'sekil', sekil, x, y, w, h, dolgu, kenarR, kenarK, kenarStil:'duz'|'kesik'|'nokta', kose, don}; cizim (kütüphane resmi) {tip:'cizim', ad: KUT anahtarı, x, y, w, h, mod:'renkli'|'cizgi'|'kesik'}. Eklemek: katmanEkle(nesne, true). sayfa(At(), {kagit, adSoyad, kenar, zemin}) sayfa ayarı; BASLIK(metin, y, boy) gökkuşağı başlık; robotCiz(x, y, ölçek) şekillerden robot. " +
       "Diğer bölümler ve S anahtarları: v-calisma S.calisma, v-boyama S.boyama, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
       "Baskı/PDF: var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false); sonra yazdirSayfalar([{tur:'tuval', tuval:t.c, w:o.W, h:o.H}]) ya da pdfIndirSayfalar(aynısı). Hazır sayfa tuvali: knTuval(knSablon(KONULAR[i], KN_SAYFA[j])). " +
-      "YASAK: S.*.gecmis, S.banka, S.yapilan ve S.ayar'ı silmek; localStorage'ı temizlemek. Kod bitince program kendisi kaydeder ve yeniden çizer.";
+      "YASAK: S.*.gecmis, S.banka, S.yapilan ve S.ayar'ı silmek; localStorage'ı temizlemek; sınıf listesini (çocuk adları) okumak ya da cevaba yazmak. Kod bitince program kendisi kaydeder ve yeniden çizer.";
     function talimat() {
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
         "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
@@ -3959,18 +4001,18 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Resim üretme hakkı sınırlı: gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
-        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "ÇOCUK ADLARI: Öğretmen 'her çocuğa adıyla', 'çocukların adlarıyla', 'isim kartı' gibi bir şey isterse adın geleceği yazıya tam olarak ÇOCUĞUN ADI yaz (büyük harf, tek yazı öğesi); gerçek adları program cihazdaki sınıf listesinden doldurur ve her çocuk için ayrı sayfa basar. Gerçek çocuk adı isteme, sorma, yazma; öğretmene 'Yazdır/PDF her çocuk için ayrı sayfa çıkarır; adlar Ayarlar → Sınıf listesi'nde' de. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function sor() {
       var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
       if (dikte && mik.classList.contains("dinliyor")) dikte.stop().catch(function () {});
-      calisiyor = true; kontrolGerek = false; $("asYap").disabled = true; cevap.style.display = ""; cevap.textContent = "Düşünüyorum…";
+      calisiyor = true; kontrolGerek = false; sonVideo = ""; $("asVideo").style.display = "none"; $("asYap").disabled = true; cevap.style.display = ""; cevap.textContent = "Düşünüyorum…";
       var bag = kayit.filter(function (k) { return k.t > baglamT; }).slice(-6), mesajlar = [];
       bag.forEach(function (k) { mesajlar.push({ role: "user", content: "İstek: " + k.q }, { role: "assistant", content: String(k.a || "Tamam.") }); });
       mesajlar.push({ role: "user", content: "İstek: " + q });
       mesajlar[0] = { role: "user", content: talimat() + "\n\n" + (bag.length ? "(Aşağıda öğretmenle önceki konuşmalarınız var; 'onu', 'aynısını', 'az önceki', 'dünkü' derse bunlara bak.)\n\n" : "") + mesajlar[0].content };
       sample(mesajlar, { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }).then(function (r) {
-        var t = (r && r.text) || "Tamam."; cevap.textContent = t; kayit.push({ t: Date.now(), q: q, a: String(t).slice(0, 600) }); kayit = kayit.slice(-40); kayitSakla(true); gecmisCiz(); giris.value = ""; giris.dataset.taban = "";
+        var t = (r && r.text) || "Tamam."; cevap.textContent = t; kayit.push({ t: Date.now(), q: q, a: String(t).slice(0, 600) + (sonVideo ? "\n🎬 " + sonVideo : "") }); sonVideo = ""; kayit = kayit.slice(-40); kayitSakla(true); gecmisCiz(); giris.value = ""; giris.dataset.taban = "";
         if (kontrolGerek && resimVar && UI.view === "v-atolye") return gozdenGecir(q, t);
       }).catch(function (e) {
         cevap.textContent = e && e.code === "rate_limited" ? "Şu an çok istek var; biraz sonra yeniden deneyin." : e && e.code === "not_granted" ? "Asistan'a izin verilmedi. İzin vermek için sayfayı yenileyip yeniden deneyin." : "Olmadı: " + ((e && e.message) || e);
@@ -4001,7 +4043,17 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     ciz: ciz, sil: sil,
     sayfalar: function () {
       var a = At(); if (!a.katmanlar.length && !a.baslik && !a.boya.length && !a.zemin) return [];
-      var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false);
+      var o = sayfaOlcu(), yer = a.katmanlar.filter(function (L) { return L.tip === "yazi" && AD_YER.test(L.metin || "") && !(AD_YER.lastIndex = 0); }), adlar = sinifListesi();
+      if (yer.length && adlar.length) { // v4.2: her çocuk için ayrı sayfa; sayfa, istenince (sırayla) çizilir ki telefon belleği dolmasın
+        var eski = yer.map(function (L) { return L.metin; });
+        toast(adlar.length + " çocuk için " + adlar.length + " sayfa hazırlanıyor (Ayarlar → Sınıf listesi).", "iyi");
+        return adlar.map(function (ad) { return { tur: "tuval", w: o.W, h: o.H, get tuval() {
+          yer.forEach(function (L, i) { L.metin = eski[i].replace(AD_YER, ad); });
+          var t = tuvalYap(o.W, o.H, DPI); try { sayfaCiz(t.x, o.W, o.H, false); } finally { yer.forEach(function (L, i) { L.metin = eski[i]; }); }
+          return t.c; } }; });
+      }
+      if (yer.length) toast("Sınıf listesi boş: Ayarlar → Sınıf listesi'ne çocukların adlarını yazarsanız her çocuk için ayrı sayfa çıkar.", "kotu");
+      var t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false);
       return [{ tur: "tuval", tuval: t.c, w: o.W, h: o.H }];
     },
     ad: function () { return "Etkinlik_" + (At().baslik ? dosyaAdiTemiz(At().baslik) + "_" : "") + bugun(); },
@@ -5091,12 +5143,15 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 (function () {
   var A = [["ayKurum", "kurum"], ["ayOgretmen", "ogretmen"], ["ayUnvan", "unvan"], ["ayGrup", "grup"], ["ayYas", "yas"], ["ayIletisim", "iletisim"], ["aySablonAdres", "sablonAdres"]];
   A.forEach(function (a) { $(a[0]).addEventListener("input", function () { S.ayar[a[1]] = this.value; basBilgi(); durumKaydetGec(); }); });
-  MOD["v-ayarlar"] = { ciz: function () { A.forEach(function (a) { $(a[0]).value = S.ayar[a[1]] || ""; }); } };
+  MOD["v-ayarlar"] = { ciz: function () { A.forEach(function (a) { $(a[0]).value = S.ayar[a[1]] || ""; }); $("aySinif").value = sinifListesi().join("\n"); sinifSay(); } };
+  function sinifSay() { var n = sinifListesi().length; $("aySinifSay").textContent = n ? n + " çocuk kayıtlı (yalnız bu cihazda)." : "Liste boş."; }
+  $("aySinif").addEventListener("input", function () { try { localStorage.setItem(SINIF_ANAHTAR, $("aySinif").value); } catch (e) {} sinifSay(); });
   MOD["v-referans"] = { ciz: function () { } };
 })();
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.2", "1) Sınıf listesi: Ayarlar'a çocukların adlarını yazın (yalnız bu cihazda kalır, Asistan'a ve hiçbir yere gitmez). Stüdyo'da bir yazıya ÇOCUĞUN ADI yazınca (ya da Asistan'a \"her çocuğa adıyla … yap\" deyince) Yazdır/PDF her çocuk için ayrı sayfa çıkarır. 2) Kısa video: Asistan'a \"kaplumbağa el sallasın, 3 saniyelik video yap\" deyin; Hugging Face önce resmi çizer, sonra canlandırır (1-3 dk). Video yeni sekmede açılır, oradan indirilir; bağlantı birkaç saat geçerli. Ücretsiz süre günde birkaç videoya yeter."],
   ["v4.1", "Asistan artık geçmişi hatırlıyor: söylediğiniz her şey ve cevapları saklanır (son 40), sayfayı kapatıp açınca da durur; aynı Claude hesabıyla açtığınız telefon ve bilgisayarda aynı geçmiş görünür. Asistan son 6 konuşmayı dikkate alır (\"az önceki sayfayı büyüt\" gibi). 🕘 Geçmiş düğmesiyle eski istekleri görüp tekrar kullanabilir, kırmızı düğmeyle silebilirsiniz; ✚ Yeni konu, eski konuşmaları dikkate almadan başlar."],
   ["v4.0", "Asistan resimleri artık önce Hugging Face ile çiziyor (ücretsiz, Figma kredisi harcamaz; 3D renkli ve kalın çizgili boyama). Hugging Face o an çizemezse (günlük ücretsiz süre doldu vb.) kendiliğinden Figma'ya geçer."],
   ["v3.9", "Asistan başka bir Figma hesabına geçmeye hazır (ör. öğretmen hesabı / Figma for Education): bağlı hesap değişince kendine yeni dosya açar ve eski \"hak bitti\" kaydını unutur. Hak bitince ne zaman yenileneceğini Figma'nın verdiği saatle söyler (günlük ya da aylık)."],
