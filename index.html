@@ -354,6 +354,15 @@ table.tb td.ort,table.tb th.ort{text-align:center}
 }
 /* ---------- TELEFON ---------- */
 .mobMenu,.mobPerde{display:none}
+/* v4.3: Claude sayfasında telefonda üstte Claude'un kendi çubuğu da olduğu için programın mavi başlığı gizlenir; ☰ sağ üstte küçük düğme olur */
+@media (max-width:800px){
+  html.cl-ortam{--ustYuk:0px}
+  html.cl-ortam header.topbar{height:0;padding:0;background:none;box-shadow:none;overflow:visible}
+  html.cl-ortam header.topbar>*:not(.mobMenu){display:none !important}
+  html.cl-ortam .mobMenu{position:fixed;top:8px;right:8px;z-index:80;width:40px;height:38px;background:#1a4b8c !important;border:0 !important;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+  html.cl-ortam .as-not{display:none}
+  html.cl-ortam .as-ust{padding-right:46px}
+}
 @media (max-width:800px){
   :root{--ustYuk:56px;--agacGen:0px}
   html.agac-dar{--agacGen:0px}
@@ -906,7 +915,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.2";
+var SURUM = "v4.3";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1043,6 +1052,7 @@ function claudeOrtamAyarla() { // Claude sayfasında çalışmayan şeyleri gizl
   if (claudeOrtamAyarla.oldu) return; claudeOrtamAyarla.oldu = true;
   window.claude.use("downloads").then(function (d) { CL_INDIR = d; });
   var st = document.createElement("style"); st.textContent = "#btnDrive,#atWebKap,#asistanGit{display:none!important}"; document.head.appendChild(st);
+  document.documentElement.classList.add("cl-ortam");
 }
 if (CLAUDE_ORTAM) claudeOrtamAyarla();
 function indir(blob, ad) {
@@ -5151,6 +5161,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.3", "Telefonda Claude sayfasında daha çok yer: Claude'un kendi üst çubuğu (yorum ve Sohbet et düğmeleri) kaldırılamadığı için programın mavi başlığı telefonda gizlendi; menü (☰) sağ üstte küçük düğme oldu."],
   ["v4.2", "1) Sınıf listesi: Ayarlar'a çocukların adlarını yazın (yalnız bu cihazda kalır, Asistan'a ve hiçbir yere gitmez). Stüdyo'da bir yazıya ÇOCUĞUN ADI yazınca (ya da Asistan'a \"her çocuğa adıyla … yap\" deyince) Yazdır/PDF her çocuk için ayrı sayfa çıkarır. 2) Kısa video: Asistan'a \"kaplumbağa el sallasın, 3 saniyelik video yap\" deyin; Hugging Face önce resmi çizer, sonra canlandırır (1-3 dk). Video yeni sekmede açılır, oradan indirilir; bağlantı birkaç saat geçerli. Ücretsiz süre günde birkaç videoya yeter."],
   ["v4.1", "Asistan artık geçmişi hatırlıyor: söylediğiniz her şey ve cevapları saklanır (son 40), sayfayı kapatıp açınca da durur; aynı Claude hesabıyla açtığınız telefon ve bilgisayarda aynı geçmiş görünür. Asistan son 6 konuşmayı dikkate alır (\"az önceki sayfayı büyüt\" gibi). 🕘 Geçmiş düğmesiyle eski istekleri görüp tekrar kullanabilir, kırmızı düğmeyle silebilirsiniz; ✚ Yeni konu, eski konuşmaları dikkate almadan başlar."],
   ["v4.0", "Asistan resimleri artık önce Hugging Face ile çiziyor (ücretsiz, Figma kredisi harcamaz; 3D renkli ve kalın çizgili boyama). Hugging Face o an çizemezse (günlük ücretsiz süre doldu vb.) kendiliğinden Figma'ya geçer."],
