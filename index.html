@@ -697,6 +697,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
       </div>
       <div id="atAraclar" style="margin:8px 0"></div>
       <div id="atTuvalKap"><canvas id="atTuval"></canvas></div>
+      <div id="atAdBilgi" class="ipucu" style="display:none;margin-top:6px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:6px 10px;color:#1b5e20"></div>
     </div>
     <div class="kart at-sag" id="atPanel"></div>
   </div>
@@ -915,7 +916,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.6";
+var SURUM = "v4.7";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -926,7 +927,18 @@ function h(tag, at, ic) {
 }
 var SINIF_ANAHTAR = "ogretmenYardimcisi_sinif"; // çocuk adları: yalnız bu cihazda; S'ye, yedeğe, Asistan'a girmez
 function sinifListesi() { var t = ""; try { t = localStorage.getItem(SINIF_ANAHTAR) || ""; } catch (e) {} var g = {}; return t.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(function (x) { if (!x || g[x]) return false; g[x] = 1; return true; }).slice(0, 60); }
-var AD_YER = /ÇOCUĞUN ADI|\{AD\}/g;
+var AD_YER = /ÇOCUĞUN ADI|\{AD\d*\}/g, AD_NO = /ÇOCUĞUN ADI\s*(\d+)|\{AD(\d+)\}/g;
+var AD_TAM = /ÇOCUĞUN ADI(?:\s*(\d+))?(?:(['’])([A-Za-zÇĞİIÖŞÜçğıiöşü]+))?|\{AD(\d*)\}/g;
+function ekUyumu(ad, ek) { // yer tutucudaki eki adın sesine uydurur: 'nın/'in/'un, 'ya/'e, 'da/'te, 'dan/'ten, 'yla/'le, 'yı/'i
+  var buyuk = ad === ad.toLocaleUpperCase("tr"), kk = ad.toLocaleLowerCase("tr").replace(/[^a-zçğıöşüâîû]/g, ""), sesli = "aeıioöuüâîû", son = "a";
+  for (var i = kk.length - 1; i >= 0; i--) if (sesli.indexOf(kk[i]) >= 0) { son = { "â": "a", "î": "i", "û": "u" }[kk[i]] || kk[i]; break; }
+  var sonKelime = ad.toLocaleLowerCase("tr").trim().split(/\s+/).pop(); if (["alp", "kemal", "cemal", "celal", "bilal", "hilal", "nihal", "ikbal", "meral", "iclal", "rahmetullah"].indexOf(sonKelime) >= 0) son = "e"; // ince l'li adlar: Alp'in, Bilal'in
+  var sh = kk.slice(-1), unlu = sesli.indexOf(sh) >= 0, sert = "fstkçşhp".indexOf(sh) >= 0, e2 = /[eiöü]/.test(son) ? "e" : "a", e4 = { a: "ı", "ı": "ı", e: "i", i: "i", o: "u", u: "u", "ö": "ü", "ü": "ü" }[son] || "ı";
+  var k = String(ek || "").toLocaleLowerCase("tr"), r = k;
+  if (/^n?[ıiuü]n$/.test(k)) r = (unlu ? "n" : "") + e4 + "n"; else if (/^y?[ıiuü]$/.test(k)) r = (unlu ? "y" : "") + e4; else if (/^y?[ae]$/.test(k)) r = (unlu ? "y" : "") + e2;
+  else if (/^[dt][ae]n$/.test(k)) r = (sert ? "t" : "d") + e2 + "n"; else if (/^[dt][ae]$/.test(k)) r = (sert ? "t" : "d") + e2; else if (/^y?l[ae]$/.test(k)) r = (unlu ? "y" : "") + "l" + e2;
+  return buyuk ? r.toLocaleUpperCase("tr") : r;
+}
 function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function trKucuk(s) { return String(s || "").replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase().replace(/ı/g, "i").replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ö/g, "o").replace(/ç/g, "c"); }
 function trTarih(iso) { if (!iso) return ""; var p = iso.split("-"); return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : iso; }
@@ -2442,6 +2454,27 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     }
     x.restore();
   }
+  function adBilgi() { // Stüdyo'da çocuk adı yer tutucuları: yer (yazılar), k (sayfa başına ad)
+    var yer = [], k = 0;
+    At().katmanlar.forEach(function (L) { if (L.tip !== "yazi" || !L.metin) return; var m = String(L.metin); AD_YER.lastIndex = 0; if (!AD_YER.test(m)) return; AD_YER.lastIndex = 0; yer.push(L);
+      m.replace(AD_NO, function (_, a1, a2) { k = Math.max(k, +(a1 || a2)); return _; }); });
+    return { yer: yer, k: Math.max(1, k) };
+  }
+  function adUygula(no, adlar) { // no. sayfanın adlarını yazılara geçici koyar; uzun adı sığdırır; geri alma işlevi döndürür
+    var ab = adBilgi(), deg = [];
+    ab.yer.forEach(function (L) {
+      var m0 = L.metin, b0 = L.boy; yaziDuzen(L); var w0 = L.w;
+      var yeni = m0.replace(AD_TAM, function (_, n1, ap, ek, n2) { var n = +(n1 || n2 || 0), ad = n ? adlar[no * ab.k + n - 1] : adlar[no * ab.k]; if (!ad) return ""; return ad + (ap ? ap + ekUyumu(ad, ek) : ""); });
+      L.metin = yeni.trim() ? yeni : " "; yaziDuzen(L); if (w0 > 0 && L.w > w0) { L.boy = b0 * w0 / L.w; yaziDuzen(L); }
+      deg.push([L, m0, b0]);
+    });
+    return function () { deg.forEach(function (d) { d[0].metin = d[1]; d[0].boy = d[2]; yaziDuzen(d[0]); }); };
+  }
+  function adBilgiYaz() {
+    var k = $("atAdBilgi"); if (!k) return; var ab = adBilgi(), n = sinifListesi().length;
+    if (!ab.yer.length) { k.style.display = "none"; return; } k.style.display = "";
+    k.textContent = n ? "👧👦 Sınıf listesinde " + n + " ad var: ekranda 1. sayfa görünüyor; Yazdır / PDF " + Math.ceil(n / ab.k) + " sayfa çıkarır (sayfa başına " + ab.k + " ad)." : "Sayfada ÇOCUĞUN ADI yazısı var ama Sınıf listesi boş: Ayarlar → Sınıf listesi'ne adları yazın ya da Asistan'a listeyi verin.";
+  }
   function ekranCiz() {
     cancelAnimationFrame(cizZam);
     cizZam = requestAnimationFrame(function () {
@@ -2450,7 +2483,10 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       olcek = gen / o.W; var dpr = window.devicePixelRatio || 1;
       tuval.style.width = gen + "px"; tuval.style.height = Math.round(o.H * olcek) + "px";
       tuval.width = Math.round(gen * dpr); tuval.height = Math.round(o.H * olcek * dpr);
-      var x = tuval.getContext("2d"); x.setTransform(olcek * dpr, 0, 0, olcek * dpr, 0, 0); sayfaCiz(x, o.W, o.H, true);
+      var x = tuval.getContext("2d"); x.setTransform(olcek * dpr, 0, 0, olcek * dpr, 0, 0);
+      var adl = sinifListesi(), geri = adl.length && adBilgi().yer.length ? adUygula(0, adl) : null; // ekranda 1. sayfanın adları görünsün
+      try { sayfaCiz(x, o.W, o.H, true); } finally { if (geri) geri(); }
+      adBilgiYaz();
     });
   }
   /* ---- fare: seç, çoklu seç (Shift), kutu ile seç, taşı (mıknatıs), boyut, döndür ---- */
@@ -3794,10 +3830,11 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     var SAYFA_TUR = ["boyama", "dogruyanlis", "hikaye", "pano", "odev", "veli"];
     function ozet() { // Stüdyo'daki sayfanın kısa özeti (çocuk/veli bilgisi içermez)
       var a = At();
-      return { kagit: a.kagit, baslik: a.baslik, adSoyad: a.adSoyad, ogeler: a.katmanlar.filter(function (L) { return L.tip !== "foto"; }).map(function (L) {
+      return { kagit: a.kagit, baslik: a.baslik, adSoyad: a.adSoyad, ogeler: a.katmanlar.map(function (L) {
         var o = { id: L.id, tur: L.tip === "cizim" ? "resim" : L.tip, x: Math.round(L.x), y: Math.round(L.y) };
         if (L.tip === "yazi") { o.metin = L.metin; o.boy = L.boy; o.renk = L.renk; o.mod = L.mod; }
         else if (L.tip === "cizim") { o.ad = L.ad; o.boy = Math.round(L.w); o.gorunum = L.mod; }
+        else if (L.tip === "foto") { o.tur = "foto (öğretmenin resmi)"; o.w = Math.round(L.w); o.h = Math.round(L.h); }
         else { o.sekil = L.sekil; o.w = Math.round(L.w); o.h = Math.round(L.h); o.dolgu = L.dolgu; }
         return o; }) };
     }
@@ -3806,7 +3843,9 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       if (t === "resim") { var ad = KUT[o.ad] ? o.ad : null; if (!ad) return "resim yok: " + o.ad; var b = +o.boy || 80;
         return katmanEkle({ tip: "cizim", ad: ad, x: +o.x || 105, y: +o.y || 150, w: b, h: b, mod: o.gorunum === "cizgi" || o.gorunum === "kesik" ? o.gorunum : "renkli", don: 0 }, true).id; }
       if (t === "yazi") return katmanEkle(Object.assign({ tip: "yazi", font: "fredoka", mod: "renkli", kenarK: 0, renk: "#37474f", hiza: "orta", don: 0 }, { metin: String(o.metin || ""), x: +o.x || 105, y: +o.y || 40, boy: +o.boy || 8, renk: o.renk || "#37474f", font: o.font || "fredoka", mod: o.mod === "cizgi" || o.mod === "kesik" ? o.mod : "renkli" },
-        o.gokkusagi ? { dolgu: "gokkusagi", kenarK: o.boy * 0.08, kenarR: "#ffffff", kenar2K: 0.6, kenar2R: "#37474f", golge: true } : {}), true).id;
+        o.gokkusagi ? { dolgu: "gokkusagi", kenarK: o.boy * 0.08, kenarR: "#ffffff", kenar2K: 0.6, kenar2R: "#37474f", golge: true } : {},
+        o.kavis ? { kavis: Math.max(-100, Math.min(100, +o.kavis)) } : {}, o.harfAra ? { harfAra: +o.harfAra } : {}, o.don ? { don: +o.don } : {}, o.golge ? { golge: true } : {},
+        o.kenarRenk ? { kenarK: o.boy * 0.08, kenarR: o.kenarRenk } : {}), true).id;
       if (t === "sekil") return katmanEkle({ tip: "sekil", sekil: SEKIL_TUR[o.sekil] ? o.sekil : "kart", kose: 5, x: +o.x || 105, y: +o.y || 150, w: +o.w || 40, h: +o.h || 40, don: 0, dolgu: o.dolgu || "#ffffff", dolgu2: "", saydam: 100, kenarR: o.kenar || "#37474f", kenarK: o.kenarKalinlik != null ? +o.kenarKalinlik : 0.8, kenarStil: o.kesik ? "kesik" : "duz" }, true).id;
       return "bilinmeyen tür";
     }
@@ -3952,6 +3991,14 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       { name: "resim_uret", description: "Kütüphanede OLMAYAN bir resmi yapay zekâyla üretir (15-40 sn) ve Stüdyo'ya koyar; resim kütüphaneye de eklenir. konu: resmin İNGİLİZCE kısa tarifi (ör. 'a cute baby tiger sitting'). ad: Türkçe adı. tur: renkli (3D) ya da boyama (kalın çizgili). yerlestir: yeni_sayfa (büyük, ortada, baslik ile) ya da ekle (var olan sayfaya).",
         inputSchema: { type: "object", properties: { konu: { type: "string" }, ad: { type: "string" }, tur: { type: "string", enum: ["renkli", "boyama"] }, yerlestir: { type: "string", enum: ["yeni_sayfa", "ekle"] }, baslik: { type: "string" } }, required: ["konu", "ad", "tur"] },
         execute: function (g) { return resimUret(g); } },
+      { name: "sinif_listesi", description: "Öğretmenin verdiği çocuk adlarını (yazıyla ya da fotoğraftaki listeden okuyup) cihazdaki Sınıf listesine kaydeder. Sayfalarda adların yerine ÇOCUĞUN ADI (sayfa başına bir çocuk) ya da ÇOCUĞUN ADI 1, ÇOCUĞUN ADI 2 … (bir sayfada birden çok çocuk) yaz; program her sayfayı adlarla doldurur, uzun adı sığdırır. mod: degistir (listeyi yenile) ya da ekle. Sonuç: listedeki ad sayısı.",
+        inputSchema: { type: "object", properties: { adlar: { type: "array", items: { type: "string" } }, mod: { type: "string", enum: ["degistir", "ekle"] } }, required: ["adlar"] },
+        execute: function (g) {
+          var yeni = (g.adlar || []).map(function (x) { return String(x || "").trim(); }).filter(Boolean);
+          var liste = g.mod === "ekle" ? sinifListesi().concat(yeni) : yeni;
+          try { localStorage.setItem(SINIF_ANAHTAR, liste.join("\n")); } catch (e) { return "liste kaydedilemedi"; }
+          ekranCiz(); return "sınıf listesinde " + sinifListesi().length + " ad var";
+        } },
       { name: "video_uret", description: "3-5 saniyelik kısa video üretir (Hugging Face; 1-3 dk sürer, günde birkaç tane). Önce bir resim çizer, sonra onu canlandırır. Video programın içinde oynamaz; öğretmene açıp indirebileceği bir bağlantı verilir (bağlantı birkaç saat geçerli). sahne: İNGİLİZCE resim tarifi (ör. 'a cute baby turtle on green grass, 3D animated movie style'). hareket: İNGİLİZCE hareket tarifi (ör. 'the turtle waves and smiles, gentle camera'). ad: Türkçe kısa ad. sure: 3 ya da 5.",
         inputSchema: { type: "object", properties: { sahne: { type: "string" }, hareket: { type: "string" }, ad: { type: "string" }, sure: { type: "number", enum: [3, 5] } }, required: ["sahne", "hareket", "ad"] },
         execute: function (g) { return videoUret(g); } },
@@ -3974,11 +4021,11 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           else if (g.eylem === "pdf") { knSecPdf = K.ad + "_" + P2.ad; pdfIndirSayfalar([knTuval(sb)]); }
           return "tamam: " + K.ad + " · " + P2.ad;
         } },
-      { name: "sayfa_kur", description: "Stüdyo'da YENİ sayfa kurar (eskisinin yerine; Geri Al ile dönülür). mm ölçü, x,y öğenin ortası. Resim adları, şekiller, fontlar KATALOG'da. Yazı mod: renkli|cizgi|kesik; resim gorunum: renkli (3D)|cizgi (boyama)|kesik.",
-        inputSchema: { type: "object", properties: { kagit: { type: "string", enum: ["a4d", "a4y"] }, baslik: { type: "string" }, adSoyad: { type: "boolean" }, cerceve: { type: "boolean" }, zemin: { type: "string" },
-          ogeler: { type: "array", items: { type: "object", properties: { tur: { type: "string", enum: ["resim", "yazi", "sekil"] }, ad: { type: "string" }, metin: { type: "string" }, sekil: { type: "string" }, x: { type: "number" }, y: { type: "number" }, boy: { type: "number" }, w: { type: "number" }, h: { type: "number" }, renk: { type: "string" }, dolgu: { type: "string" }, kenar: { type: "string" }, kesik: { type: "boolean" }, font: { type: "string" }, mod: { type: "string" }, gorunum: { type: "string" }, gokkusagi: { type: "boolean" } }, required: ["tur"] } } }, required: ["ogeler"] },
+      { name: "sayfa_kur", description: "Stüdyo'da YENİ sayfa kurar (eskisinin yerine; Geri Al ile dönülür). mm ölçü, x,y öğenin ortası. Resim adları, şekiller, fontlar KATALOG'da. Yazı mod: renkli|cizgi|kesik; resim gorunum: renkli (3D)|cizgi (boyama)|kesik. Yazıda kavis ile eğri (dairesel) yazı, gokkusagi ile renkli harf, kenarRenk ile çıkartma gibi beyaz kenar olur.",
+        inputSchema: { type: "object", properties: { kagit: { type: "string", enum: ["a4d", "a4y"] }, fotoSil: { type: "boolean", description: "true ise öğretmenin fotoğrafları da silinir (varsayılan: kalır)" }, baslik: { type: "string" }, adSoyad: { type: "boolean" }, cerceve: { type: "boolean" }, zemin: { type: "string" },
+          ogeler: { type: "array", items: { type: "object", properties: { tur: { type: "string", enum: ["resim", "yazi", "sekil"] }, ad: { type: "string" }, metin: { type: "string" }, sekil: { type: "string" }, x: { type: "number" }, y: { type: "number" }, boy: { type: "number" }, w: { type: "number" }, h: { type: "number" }, renk: { type: "string" }, dolgu: { type: "string" }, kenar: { type: "string" }, kesik: { type: "boolean" }, font: { type: "string" }, mod: { type: "string" }, gorunum: { type: "string" }, gokkusagi: { type: "boolean" }, kavis: { type: "number", description: "eğri yazı -100..100: + kemer ∩ (dairenin üstü), - gülümseme ∪ (dairenin altı), 100 yarım daire" }, harfAra: { type: "number" }, don: { type: "number" }, golge: { type: "boolean" }, kenarRenk: { type: "string" } }, required: ["tur"] } } }, required: ["ogeler"] },
         execute: function (g) {
-          gorunumAc("v-atolye"); var a = At(); a.katmanlar = []; a.boya = []; a.arac = "sec";
+          gorunumAc("v-atolye"); var a = At(), fotolar = g.fotoSil ? [] : a.katmanlar.filter(function (L) { return L.tip === "foto"; }); a.katmanlar = fotolar; a.boya = []; a.arac = "sec"; // öğretmenin koyduğu fotoğraflar kalır
           sayfa(a, { kagit: g.kagit === "a4y" ? "a4y" : "a4d", adSoyad: !!g.adSoyad, kenar: !!g.cerceve, zemin: g.zemin || "" });
           if (g.baslik) BASLIK(g.baslik, g.adSoyad ? 32 : 24, g.baslik.length > 20 ? 10 : 14);
           var n = 0; (g.ogeler || []).forEach(function (o) { var r = ogeEkle(o); if (r && r.indexOf(" ") < 0) n++; });
@@ -4024,7 +4071,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       { name: "sayfayi_oku", description: "Stüdyo'daki sayfanın öğelerini (id, tür, konum, boy, yazı) JSON olarak verir. Değiştirmeden önce çağır.",
         inputSchema: { type: "object", properties: {} },
         execute: function () { return JSON.stringify(ozet()); } },
-      { name: "oge_degistir", description: "Stüdyo'daki bir öğeyi değiştirir (alanlar: x, y, boy, w, h, metin, renk, dolgu, gorunum/mod, font) ya da sil:true ile siler.",
+      { name: "oge_degistir", description: "Stüdyo'daki bir öğeyi (fotoğraflar dahil) değiştirir (alanlar: x, y, boy, w, h, metin, renk, dolgu, gorunum/mod, font, kavis, gokkusagi, kenarRenk, golge, don) ya da sil:true ile siler.",
         inputSchema: { type: "object", properties: { id: { type: "string" }, sil: { type: "boolean" }, alanlar: { type: "object" } }, required: ["id"] },
         execute: function (g) {
           var a = At(), L = a.katmanlar.filter(function (k) { return k.id === g.id; })[0]; if (!L) return "öğe bulunamadı";
@@ -4036,6 +4083,8 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           if (f.renk && L.tip === "yazi") { L.renk = f.renk; delete L.dolgu; }
           if (f.dolgu && L.tip === "sekil") L.dolgu = f.dolgu;
           if (f.font && L.tip === "yazi") L.font = f.font;
+          if (L.tip === "yazi") { if (f.kavis != null) L.kavis = Math.max(-100, Math.min(100, +f.kavis)); if (f.gokkusagi) L.dolgu = "gokkusagi"; if (f.kenarRenk) { L.kenarR = f.kenarRenk; L.kenarK = L.boy * 0.08; } if (f.golge != null) L.golge = !!f.golge; }
+          if (f.don != null) L.don = +f.don;
           var md = f.gorunum || f.mod; if (md && /^(renkli|cizgi|kesik)$/.test(md)) L.mod = md;
           durumKaydet(); ciz(); kontrolGerek = true; return "değişti";
         } }
@@ -4058,12 +4107,14 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     function talimat() {
       return "Sen 'Öğretmen Yardımcısı · 4-6 Yaş' programının içindeki yardımcısın. Kullanıcı Diyanet Kur'an kursunda 4-6 yaş grubuna ders veren bir öğretici. " +
         "Türkçe, kısa ve sıcak cevap ver (1-3 cümle). İsteği araçlarla programın içinde YAP; ne yaptığını söyle. " +
-        "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Ayarlar. Bunlar VAR; 'yapamıyorum' deme. ASLA 'programda yok', 'elimde yok', 'yapamıyorum' deyip durma ve öğretmene seçenek sorma: isteğe en yakın şeyi araçlarla HEMEN YAP, sonra ne yaptığını tek cümleyle söyle. Öğretmen düzeltirse ('4 değil 2 dedim') itiraz etmeden söylediği gibi yeniden yap. " +
+        "Programın bölümleri: Konular · Hazır Sayfalar (18 konu × 6 sayfa + Elif-Ba), Etkinlik Stüdyosu (sayfa tasarımı, şablon galerisi, 3D resim kütüphanesi, boyama araçları), Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme, POSTER YAP (sayfayı büyütüp 4/6/9 A4'e böler; postere_gonder aracı), Ayarlar. Bunlar VAR; 'yapamıyorum' deme. ASLA 'programda yok', 'elimde yok', 'yapamıyorum' deme. ANLAMA KURALI: İsteği iyi anladıysan araçlarla HEMEN yap, sonra ne yaptığını tek cümleyle söyle. Ama isteği tam anlamadıysan, iki farklı anlama gelebiliyorsa ya da öğretmenin gösterdiği örnek/fotoğrafla ne istediği net değilse HİÇBİR ARACI ÇALIŞTIRMADAN önce tek, kısa bir soru sor (gerekirse 2-3 kısa seçenek yaz; ör. 'Her çocuğa ayrı sayfa mı, bir sayfada 6 isim mi olsun?'). Cevap gelince (önceki konuşma sana gelir) hemen yap. Örnek resim verildiyse önce ona dikkatle bak: yazı biçimi (kemer gibi eğri yazı, daire içinde, süslü), renkleri ve düzeni ne ise ona benzet. Öğretmen düzeltirse ('4 değil 2 dedim') itiraz etmeden söylediği gibi yeniden yap. " +
         "Hazır araçlar bir işi tam yapamıyorsa (yeni bir düzen, özel bölme, toplu değişiklik, birden çok sayfa…) serbest_kod ile programın içinde KENDİN yap; programda düğmesi olmaması engel değil. " +
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Resim üretme hakkı sınırlı: gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
-        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "YÜKLENEN RESİM/PDF: Öğretmen Resim Yerleştirme, Poster ya da Resimden Boyama'ya resim veya PDF yüklediyse o ekrandayken sana küçük resimleri sırayla EKTE gelir (PDF'in her sayfası ayrı resimdir); içine bakıp 'kedili olanı', '3. sayfayı' gibi istekleri yap. Hazır araç yoksa serbest_kod ile S.resim / S.poster / S.boyama üzerinde çalış; poster için postere_gonder kaynak 'resim N' ya da 'mevcut'. " + "ÇOCUK ADLARI: Öğretmen 'her çocuğa adıyla', 'çocukların adlarıyla', 'isim kartı' gibi bir şey isterse adın geleceği yazıya tam olarak ÇOCUĞUN ADI yaz (büyük harf, tek yazı öğesi); gerçek adları program cihazdaki sınıf listesinden doldurur ve her çocuk için ayrı sayfa basar. Gerçek çocuk adı isteme, sorma, yazma; öğretmene 'Yazdır/PDF her çocuk için ayrı sayfa çıkarır; adlar Ayarlar → Sınıf listesi'nde' de. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "YÜKLENEN RESİM/PDF: Öğretmen Resim Yerleştirme, Poster ya da Resimden Boyama'ya resim veya PDF yüklediyse o ekrandayken sana küçük resimleri sırayla EKTE gelir (PDF'in her sayfası ayrı resimdir); içine bakıp 'kedili olanı', '3. sayfayı' gibi istekleri yap. Hazır araç yoksa serbest_kod ile S.resim / S.poster / S.boyama üzerinde çalış; poster için postere_gonder kaynak 'resim N' ya da 'mevcut'. " + "ÇOCUK ADLARI: Öğretmen adları verirse (yazıyla ya da fotoğraftaki listeden; fotoğraf ekte gelir, oku) önce sinif_listesi ile kaydet (öğretmen 'sadece adlar' derse soyadı yazma; sormadıysa listede yazdığı gibi). Sayfada adın yerine ÇOCUĞUN ADI (sayfa başına bir çocuk) ya da ÇOCUĞUN ADI 1, ÇOCUĞUN ADI 2 … (bir sayfada birden çok çocuk; ör. 6 isim etiketi) yaz. Program ekranda ilk sayfayı gerçek adlarla gösterir, Yazdır/PDF bütün çocukları sayfa sayfa çıkarır ve uzun adı kutuya sığdırır. Liste yoksa ve öğretmen ad vermediyse adları iste. " +
+        "KİŞİYE ÖZEL ETKİNLİK: Öğretmen bir resim/poster koyup 'üstüne adlarını şekilli yaz, ör. Ali Kayra'nın Sofrası' derse: resim Stüdyo'da fotoğraf olarak durur (silme; gerekirse oge_degistir ile sayfayı kaplayacak kadar büyüt, yatay resimde kağıt a4y). Resme bak, boş ve göze batan güzel bir yer seç (üst orta, kurdele/bulut alanı), oraya 'ÇOCUĞUN ADI'nın Sofrası' gibi yazıyı kavis 30-60, gokkusagi ya da resmin renklerinde, kenarRenk '#ffffff', golge ile ekle; gerekirse arkasına şerit/kurdele (sekil 'serit') koy. Ekleri yer tutucuya yaz ('nın, 'a, 'da, 'la, 'ı): program her ada uydurur (Ali Kayra'nın, Eslem'in, Alp'in). " +
+        "ŞEKİLLİ İSİM / ÇIKARTMA: Instagram çıkartması gibi isim istenirse her isim için daire (sekil 'daire', pastel dolgu, kesik kenar = kesme çizgisi), üstte kavis 60-100 ile kemer gibi eğri isim (gokkusagi ya da kenarRenk '#ffffff' ile), ortada küçük bir resim (yıldız, ay, kalp, kar tanesi…), istenirse altta kavis -60 ile ikinci yazı kullan; birden çok etiketi sayfaya eşit dağıt (ör. 2x3 = 6 etiket, her biri ~85 mm). " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
     }
     function kucukResim(kaynak, uzun) { // IMG kaynağından küçük JPEG (Asistan'ın görmesi için)
       return new Promise(function (ok) {
@@ -4078,6 +4129,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       if (v === "v-resim") { idler = S.resim.liste.slice(0, resimSinir).map(function (r) { return r.id; }); if (idler.length) not = "Ekteki " + idler.length + " resim, Resim Yerleştirme listesindeki ilk " + idler.length + " resim (sırayla 1., 2. …; listede toplam " + S.resim.liste.length + " resim var): " + idler.map(function (id, i) { return (i + 1) + ") " + ((IMG[id] || {}).ad || "resim"); }).join(", ") + "."; }
       else if (v === "v-poster" && S.poster.img) { idler = [S.poster.img]; not = "Ekteki resim, Poster Yap'ta yüklü görsel (" + ((IMG[S.poster.img] || {}).ad || "") + ")."; }
       else if (v === "v-boyama" && S.boyama.img) { idler = [S.boyama.img]; not = "Ekteki resim, Resimden Boyama'ya yüklenen resim."; }
+      else if (v === "v-atolye") { idler = At().katmanlar.filter(function (L) { return L.tip === "foto" && L.img; }).slice(0, resimSinir).map(function (L) { return L.img; }); if (idler.length) not = "Ekteki " + idler.length + " resim, Stüdyo sayfasına öğretmenin koyduğu fotoğraflar (örnek, liste ya da çocuk çizimi olabilir; ne olduklarına bak)."; }
       idler = idler.filter(function (id) { return IMG[id] && IMG[id].img; });
       return Promise.all(idler.map(function (id) { return kucukResim(IMG[id].img, 640); })).then(function (b) { return { blobs: b.filter(Boolean), not: not }; });
     }
@@ -4125,14 +4177,14 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     ciz: ciz, sil: sil,
     sayfalar: function () {
       var a = At(); if (!a.katmanlar.length && !a.baslik && !a.boya.length && !a.zemin) return [];
-      var o = sayfaOlcu(), yer = a.katmanlar.filter(function (L) { return L.tip === "yazi" && AD_YER.test(L.metin || "") && !(AD_YER.lastIndex = 0); }), adlar = sinifListesi();
-      if (yer.length && adlar.length) { // v4.2: her çocuk için ayrı sayfa; sayfa, istenince (sırayla) çizilir ki telefon belleği dolmasın
-        var eski = yer.map(function (L) { return L.metin; });
-        toast(adlar.length + " çocuk için " + adlar.length + " sayfa hazırlanıyor (Ayarlar → Sınıf listesi).", "iyi");
-        return adlar.map(function (ad) { return { tur: "tuval", w: o.W, h: o.H, get tuval() {
-          yer.forEach(function (L, i) { L.metin = eski[i].replace(AD_YER, ad); });
-          var t = tuvalYap(o.W, o.H, DPI); try { sayfaCiz(t.x, o.W, o.H, false); } finally { yer.forEach(function (L, i) { L.metin = eski[i]; }); }
-          return t.c; } }; });
+      var o = sayfaOlcu(), ab = adBilgi(), adlar = sinifListesi(), yer = ab.yer;
+      if (yer.length && adlar.length) { // v4.2/4.7: adlarla sayfalar; sayfa, istenince (sırayla) çizilir ki telefon belleği dolmasın
+        var ss = Math.ceil(adlar.length / ab.k), dizi = [];
+        toast(adlar.length + " çocuk için " + ss + " sayfa hazırlanıyor (Ayarlar → Sınıf listesi).", "iyi");
+        for (var sn = 0; sn < ss; sn++) (function (no) { dizi.push({ tur: "tuval", w: o.W, h: o.H, get tuval() {
+          var geri = adUygula(no, adlar), t = tuvalYap(o.W, o.H, DPI); try { sayfaCiz(t.x, o.W, o.H, false); } finally { geri(); }
+          return t.c; } }); })(sn);
+        return dizi;
       }
       if (yer.length) toast("Sınıf listesi boş: Ayarlar → Sınıf listesi'ne çocukların adlarını yazarsanız her çocuk için ayrı sayfa çıkar.", "kotu");
       var t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false);
@@ -5233,6 +5285,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.7", "Asistan daha anlayışlı: emin olmadığı isteklerde önce kısa bir soru soruyor, anlayınca yapıyor; verdiğiniz örnek resme bakıp ona benzetiyor. Çocuk listesini fotoğraftan okuyup Sınıf listesine kendisi kaydediyor. Eğri (kemer gibi) yazı ve çıkartma gibi şekilli isimler yapabiliyor; bir sayfada birden çok isim (ÇOCUĞUN ADI 1, 2, 3 …) olabiliyor, uzun isimler kutuya sığdırılıyor. Stüdyo ekranında adlar gerçek haliyle görünüyor, PDF bütün çocukları çıkarıyor. Kişiye özel etkinlik: bir resmin üstüne her çocuğun adı şekilli yazılabiliyor (ör. Ali Kayra'nın Sofrası); ekler her ada göre doğru çekiliyor (Eslem'in, Emir'e, Elif'te). Asistan sayfayı yeniden kurarken sizin koyduğunuz fotoğrafları silmiyor."],
   ["v4.6", "Asistan artık Claude'un en güçlü ayarıyla düşünüyor (daha akıllı, biraz daha yavaş); yaptığı sayfayı kontrol etmesi de daha dikkatli."],
   ["v4.5", "PDF desteği ve Asistan'ın gözü: Resim Yerleştirme'de 'Resim / PDF Seç' (PDF'in her sayfası ayrı resim olur) ve Poster Yap'ta 'Görsel / PDF Seç' (çok sayfalı PDF'te hangi sayfanın poster olacağını seçersiniz). PDF bilgisayarınızda/telefonunuzda açılır, dışarı gitmez (ilk kullanımda PDF okuyucunun kodu internetten iner). Poster Yap'a 'Tek A4 (bölmeden)' eklendi. Asistan artık bu ekranlarda yüklediğiniz resimlerin içini görüyor: 'kedili olanı 4 A4 poster yap', 'PDF'in 3. sayfasını boyamaya çevir', 'ikinci resmi sil' gibi istekleri yapar."],
   ["v4.4", "Asistan'ın resmi değişti: konuşma balonu içinde sevimli robot."],
