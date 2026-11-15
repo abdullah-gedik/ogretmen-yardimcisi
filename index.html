@@ -895,7 +895,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v3.9";
+var SURUM = "v4.0";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -3698,7 +3698,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       if (t === "sekil") return katmanEkle({ tip: "sekil", sekil: SEKIL_TUR[o.sekil] ? o.sekil : "kart", kose: 5, x: +o.x || 105, y: +o.y || 150, w: +o.w || 40, h: +o.h || 40, don: 0, dolgu: o.dolgu || "#ffffff", dolgu2: "", saydam: 100, kenarR: o.kenar || "#37474f", kenarK: o.kenarKalinlik != null ? +o.kenarKalinlik : 0.8, kenarStil: o.kesik ? "kesik" : "duz" }, true).id;
       return "bilinmeyen tür";
     }
-    /* ---- resim üretme: kullanıcının Figma bağlantısı üzerinden (günlük ücretsiz kota) ---- */
+    /* ---- resim üretme: önce Hugging Face (ücretsiz kota), olmazsa Figma (kredili) ---- */
     var mcp = null; claude.use("mcp").then(function (m) { mcp = m; });
     function figmaYuku(r) { return r && r.payload != null ? r.payload : null; }
     function figmaHata(e) {
@@ -3725,9 +3725,10 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           .then(function (r2) { var p2 = figmaYuku(r2), k = p2 && (p2.file_key || p2.fileKey); if (!k) throw new Error("Figma dosyası açılamadı"); S.ayar.figmaDosya = k; sakla(); return k; });
       });
     }
-    function beyaziSil(img) { // 3D resmin beyaz arka planını saydam yapar, kırpar, küçültür
+    function beyaziSil(img, kenar) { // 3D resmin beyaz arka planını saydam yapar, kırpar, küçültür; kenar>0 ise kenardaki çerçeveyi de siler
       var w = img.naturalWidth, hh = img.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = hh;
       var x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(img, 0, 0);
+      if (kenar) { var km = Math.round(Math.min(w, hh) * kenar); x.fillStyle = "#fff"; x.fillRect(0, 0, w, km); x.fillRect(0, hh - km, w, km); x.fillRect(0, 0, km, hh); x.fillRect(w - km, 0, km, hh); }
       var id = x.getImageData(0, 0, w, hh), d = id.data, arka = new Uint8Array(w * hh), yig = [];
       function beyaz(i) { return d[i * 4] >= 244 && d[i * 4 + 1] >= 244 && d[i * 4 + 2] >= 244; }
       for (var i = 0; i < w; i++) { yig.push(i, (hh - 1) * w + i); } for (var j = 0; j < hh; j++) { yig.push(j * w, j * w + w - 1); }
@@ -3758,7 +3759,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       }).then(function (src) { return resimYukle(src).then(beyaziSil); });
     }
     function resimUret(g) {
-      if (!mcp) return Promise.resolve("Resim üretme bu görünümde kullanılamıyor (Figma bağlantısı yok).");
+      if (!mcp) return Promise.resolve("Resim üretme bu görünümde kullanılamıyor (Hugging Face / Figma bağlantısı yok).");
       var konu = String(g.konu || "").trim(), ad = String(g.ad || konu).slice(0, 40), boyama = g.tur === "boyama", dosya, kucuk = false;
       if (!konu) return Promise.resolve("konu (İngilizce tarif) gerekli");
       cevap.textContent = "🎨 " + ad + " çiziliyor… (15-40 saniye)";
@@ -3779,13 +3780,23 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         if (!tekrar && e && e.code !== "hak" && S.ayar.figmaDosya && /not found|404|403|permission|access|forbidden/i.test(String(e.message || ""))) { S.ayar.figmaDosya = ""; sakla(); return figmaResim(true); }
         throw e;
       }); }
-      return figmaResim(false).catch(function (e) { // Figma olmadı: Canva programa yalnız çok küçük resim verdiği için kullanılmaz
+      function hfResim() { // v4.0: önce Hugging Face (ücretsiz, Figma kredisi harcamaz); olmazsa Figma
+        var istem = boyama ? "Coloring book page for preschool children: " + konu + ", thick bold clean black outlines only, pure white fill, no shading, no gray, no color, simple large closed shapes, plain white background, no border, no frame, no text"
+          : konu + ", in 3D animated movie style (modern children's animation film), soft lighting, cute and friendly, whole subject visible, isolated on a plain pure white background, no text, no letters, no ground shadow";
+        return mcp.callTool("huggingface", "gr1_z_image_turbo_generate", { prompt: istem, resolution: "1024x1024 ( 1:1 )" }).then(function (r) {
+          var b = (r.content || []).filter(function (x) { return x.type === "image" && x.data; })[0]; if (!b) throw new Error("Hugging Face resim vermedi");
+          return resimYukle("data:" + (b.mimeType || "image/webp") + ";base64," + b.data).then(function (im) { return beyaziSil(im, boyama ? 0.045 : 0); });
+        });
+      }
+      var hfHata = null;
+      return hfResim().catch(function (e) { hfHata = e; cevap.textContent = "🎨 " + ad + " Figma'da çiziliyor…"; return figmaResim(false); }).catch(function (e) { // ikisi de olmadı
         var em = String((e && e.message) || "");
         if (e && e.code !== "hak" && /credit|quota|limit/i.test(em)) { // yenilenme zamanını Figma'nın mesajından al (günlük ya da aylık)
           var t = em.match(/resets? at (\d{4}-\d\d-\d\dT[\d:.]+Z)/i), y = new Date(); y.setUTCHours(24, 0, 0, 0);
           S.ayar.figmaBitti = t ? t[1] : y.toISOString(); sakla();
         }
-        throw { code: "ikisi", message: figmaHata(e) + " Bu arada kütüphanedeki resimlerden en yakınını kullan ve öğretmene bunu söyle." };
+        var hm = hfHata ? "Hugging Face çizemedi (" + String((hfHata && (hfHata.message || hfHata.code)) || "hata").slice(0, 80) + "). " : "";
+        throw { code: "ikisi", message: hm + figmaHata(e) + " Bu arada kütüphanedeki resimlerden en yakınını kullan ve öğretmene bunu söyle." };
       }).then(function (data) {
         var kid = uretilenEkle(ad + (boyama ? " (boyama)" : ""), data);
         if (g.yerlestir !== "ekle") { gorunumAc("v-atolye"); var a = At(); a.katmanlar = []; a.boya = []; a.arac = "sec"; sayfa(a, { kagit: "a4d", adSoyad: !!boyama, kenar: !!boyama }); if (g.baslik) BASLIK(g.baslik, boyama ? 32 : 24, g.baslik.length > 20 ? 10 : 14); }
@@ -5040,6 +5051,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.0", "Asistan resimleri artık önce Hugging Face ile çiziyor (ücretsiz, Figma kredisi harcamaz; 3D renkli ve kalın çizgili boyama). Hugging Face o an çizemezse (günlük ücretsiz süre doldu vb.) kendiliğinden Figma'ya geçer."],
   ["v3.9", "Asistan başka bir Figma hesabına geçmeye hazır (ör. öğretmen hesabı / Figma for Education): bağlı hesap değişince kendine yeni dosya açar ve eski \"hak bitti\" kaydını unutur. Hak bitince ne zaman yenileneceğini Figma'nın verdiği saatle söyler (günlük ya da aylık)."],
   ["v3.8", "Menü sadeleşti: Planlama (Haftalık Plan, Günlük Akış Programı, Etkinlik Bankası) ve Veli ve Kayıtlar (Veli Bilgilendirme Notu, Yapılan Etkinlikler) bölümleri kaldırıldı. Eski kayıtlarınız silinmedi, yedekte durur. Ayarlar 6, Kâğıt ve Baskı Bilgileri 7 oldu. Konulardaki hazır veli mektubu sayfaları duruyor."],
   ["v3.7", "Canva yedeği kaldırıldı: Canva programa yalnız çok küçük, bulanık resim verebildiği için Asistan artık yalnız Figma ile çizer; günlük hak bitince bunu söyler ve kütüphanedeki en yakın resmi kullanır. Stüdyo'daki 'Asistan'ın resimleri' bölümünde her resmin köşesinde 🗑 sil düğmesi var (onay ister)."],
