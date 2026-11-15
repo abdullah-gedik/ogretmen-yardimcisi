@@ -514,10 +514,10 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="iki">
     <div>
       <div class="kart"><h3>1. Resimleri ekle</h3>
-        <div class="dikkat"><b>⚠ DİKKAT!</b> Resimler bilgisayarınızdan dışarı gönderilmez. Program kapanınca resim listesi silinir (ayarlar saklanır). Net baskı için büyük/çözünürlüğü yüksek resim kullanın.</div>
-        <button type="button" class="yukleD" id="rsSec">📂 Resim Seç</button>
-        <div class="birak" id="rsBirak">Resimleri buraya sürükleyin ya da kopyalayıp <b>Ctrl+V</b> ile yapıştırın</div>
-        <input type="file" id="rsDosya" accept="image/*" multiple class="gizli">
+        <div class="dikkat"><b>⚠ DİKKAT!</b> Resimler ve PDF bilgisayarınızda işlenir, dışarı gönderilmez. PDF'in her sayfası ayrı resim olarak eklenir. Program kapanınca resim listesi silinir (ayarlar saklanır). Net baskı için büyük/çözünürlüğü yüksek resim kullanın.</div>
+        <button type="button" class="yukleD" id="rsSec">📂 Resim / PDF Seç</button>
+        <div class="birak" id="rsBirak">Resimleri ya da PDF'i buraya sürükleyin veya kopyalayıp <b>Ctrl+V</b> ile yapıştırın</div>
+        <input type="file" id="rsDosya" accept="image/*,application/pdf,.pdf" multiple class="gizli">
         <div class="liste" id="rsListe"></div>
         <div class="ipucu" id="rsIpucu"></div>
       </div>
@@ -558,14 +558,14 @@ table.tb td.ort,table.tb th.ort{text-align:center}
   <div class="iki">
     <div>
       <div class="kart"><h3>1. Görseli ekle</h3>
-        <div class="dikkat"><b>⚠ DİKKAT!</b> Görsel bilgisayarınızda işlenir, dışarı gönderilmez. Arka planı beyaz ya da saydam olan görsellerde kesim çizgisi şeklin etrafını izler.</div>
-        <button type="button" class="yukleD" id="poSec">📂 Görsel Seç</button>
-        <div class="birak" id="poBirak">Görseli buraya sürükleyin ya da <b>Ctrl+V</b> ile yapıştırın</div>
-        <input type="file" id="poDosya" accept="image/*" class="gizli">
+        <div class="dikkat"><b>⚠ DİKKAT!</b> Görsel ve PDF bilgisayarınızda işlenir, dışarı gönderilmez. PDF'in birden çok sayfası varsa hangi sayfanın poster olacağını seçersiniz. Arka planı beyaz ya da saydam olan görsellerde kesim çizgisi şeklin etrafını izler.</div>
+        <button type="button" class="yukleD" id="poSec">📂 Görsel / PDF Seç</button>
+        <div class="birak" id="poBirak">Görseli ya da PDF'i buraya sürükleyin veya <b>Ctrl+V</b> ile yapıştırın</div>
+        <input type="file" id="poDosya" accept="image/*,application/pdf,.pdf" class="gizli">
         <div id="poKucuk" class="ipucu"></div><div id="poKaldirK"></div>
       </div>
       <div class="kart"><h3>2. Kaç sayfaya bölünsün?</h3>
-        <div class="hizli" id="poDuzen"><button data-v="1x2">1×2 (2 A4)</button><button data-v="2x2">2×2 (4 A4)</button><button data-v="2x3">2×3 (6 A4)</button><button data-v="3x3">3×3 (9 A4)</button><button data-v="3x4">3×4 (12 A4)</button><button data-v="4x4">4×4 (16 A4)</button><button data-v="A3">Tek A3 (bölmeden)</button></div>
+        <div class="hizli" id="poDuzen"><button data-v="1x2">1×2 (2 A4)</button><button data-v="2x2">2×2 (4 A4)</button><button data-v="2x3">2×3 (6 A4)</button><button data-v="3x3">3×3 (9 A4)</button><button data-v="3x4">3×4 (12 A4)</button><button data-v="4x4">4×4 (16 A4)</button><button data-v="1x1">Tek A4 (bölmeden)</button><button data-v="A3">Tek A3 (bölmeden)</button></div>
         <label class="sat"><span>Sayfa yönü</span><select id="poYon"><option value="oto">Otomatik (görsele göre)</option><option value="dikey">Dikey</option><option value="yatay">Yatay</option></select></label>
         <label class="sat"><span>Kesim çizgisi</span><select id="poKesim"><option value="sekil">Şeklin etrafını izlesin</option><option value="dik">Düz dikdörtgen çerçeve</option><option value="yok">Kesim çizgisi olmasın</option></select></label>
         <label class="sat"><span>Şekil ile çizgi arası (mm)</span><input type="number" id="poPay" min="0" max="30"></label>
@@ -915,7 +915,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v4.4";
+var SURUM = "v4.5";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1066,25 +1066,73 @@ function indir(blob, ad) {
 }
 
 /* ---------------- RESİM YÜKLEME (ortak) ---------------- */
-function resimleriOku(dosyalar, cb) {
-  var list = Array.prototype.filter.call(dosyalar || [], function (f) { return f && f.type && f.type.indexOf("image/") === 0; });
-  if (!list.length) { toast("Resim dosyası bulunamadı.", "kotu"); return; }
-  var kalan = list.length, yeni = [];
-  function bitti() { if (--kalan > 0) return; cb(yeni.filter(Boolean)); }
+/* v4.5 PDF: pdf.js cdnjs'den yalnız gerektiğinde yüklenir (yalnız program kodu iner; PDF dosyası hiçbir yere gitmez) */
+var PDFJS_KOK = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/", pdfjsHazir = null;
+function pdfjsYukle() {
+  if (pdfjsHazir) return pdfjsHazir;
+  function yukle(src) { return new Promise(function (ok, no) { var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = function () { no(new Error("PDF okuyucu yüklenemedi; internet bağlantısını kontrol edin")); }; document.head.appendChild(sc); }); }
+  pdfjsHazir = yukle(PDFJS_KOK + "pdf.min.js").then(function () { return yukle(PDFJS_KOK + "pdf.worker.min.js"); }).then(function () { // worker ana sayfada çalışır (pdfjsWorker)
+    var L = window.pdfjsLib; if (!L) throw new Error("PDF okuyucu açılamadı"); L.GlobalWorkerOptions.workerSrc = PDFJS_KOK + "pdf.worker.min.js"; return L;
+  });
+  pdfjsHazir.catch(function () { pdfjsHazir = null; });
+  return pdfjsHazir;
+}
+function pdfMi(f) { return f && (f.type === "application/pdf" || /\.pdf$/i.test(f.name || "")); }
+function pdfSayfalari(f, enCok) { // PDF -> IMG kimlikleri (her sayfa bir resim, en uzun kenar ~2000 px ≈ A4'te 170 DPI)
+  enCok = enCok || 30;
+  return pdfjsYukle().then(function (L) { return f.arrayBuffer().then(function (buf) { return L.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise; }); }).then(function (doc) {
+    var n = Math.min(doc.numPages, enCok), ids = [], zincir = Promise.resolve();
+    for (var i = 1; i <= n; i++) (function (no) {
+      zincir = zincir.then(function () { mesgul(true, "PDF açılıyor… (" + no + "/" + n + ")"); return doc.getPage(no); }).then(function (pg) {
+        var v0 = pg.getViewport({ scale: 1 }), sc = Math.min(3, 2000 / Math.max(v0.width, v0.height)), vp = pg.getViewport({ scale: sc });
+        var c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+        var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        return pg.render({ canvasContext: x, viewport: vp }).promise.then(function () {
+          return new Promise(function (ok) { c.toBlob(ok, "image/jpeg", 0.92); });
+        }).then(function (blob) { // tuvali bırak, sıkıştırılmış resim tut (telefon belleği)
+          return new Promise(function (ok) { var im = new Image(); im.onload = function () { var id = "r" + yeniId(); IMG[id] = { img: im, w: im.naturalWidth, h: im.naturalHeight, ad: (f.name || "PDF").replace(/\.pdf$/i, "") + " · sayfa " + no }; ids.push(id); c.width = c.height = 1; pg.cleanup(); ok(); }; im.onerror = function () { ok(); }; im.src = URL.createObjectURL(blob); });
+        });
+      });
+    })(i);
+    return zincir.then(function () { if (doc.numPages > n) toast("PDF'in ilk " + n + " sayfası alındı (" + doc.numPages + " sayfa vardı).", "kotu"); doc.destroy(); return ids; });
+  }).finally(function () { mesgul(false); });
+}
+function resimleriOku(dosyalar, cb, tekSayfa) {
+  var hepsi = Array.prototype.slice.call(dosyalar || []);
+  var list = hepsi.filter(function (f) { return f && ((f.type && f.type.indexOf("image/") === 0) || pdfMi(f)); });
+  if (!list.length) { toast("Resim ya da PDF dosyası bulunamadı.", "kotu"); return; }
+  var sonuc = [], zincir = Promise.resolve();
   list.forEach(function (f, i) {
-    var url = URL.createObjectURL(f), im = new Image();
-    im.onload = function () { var id = "r" + yeniId(); IMG[id] = { img: im, w: im.naturalWidth, h: im.naturalHeight, ad: f.name || "resim" }; yeni[i] = id; bitti(); };
-    im.onerror = function () { URL.revokeObjectURL(url); bitti(); };
-    im.src = url;
+    zincir = zincir.then(function () {
+      if (pdfMi(f)) return pdfSayfalari(f).then(function (ids) { sonuc[i] = ids; }).catch(function (e) { toast("PDF açılamadı: " + ((e && e.message) || e), "kotu"); sonuc[i] = []; });
+      return new Promise(function (ok) {
+        var url = URL.createObjectURL(f), im = new Image();
+        im.onload = function () { var id = "r" + yeniId(); IMG[id] = { img: im, w: im.naturalWidth, h: im.naturalHeight, ad: f.name || "resim" }; sonuc[i] = [id]; ok(); };
+        im.onerror = function () { URL.revokeObjectURL(url); sonuc[i] = []; ok(); };
+        im.src = url;
+      });
+    });
+  });
+  zincir.then(function () {
+    var yeni = [].concat.apply([], sonuc.filter(Boolean)); if (!yeni.length) return;
+    if (tekSayfa && yeni.length > 1) pdfSayfaSec(yeni, function (id) { cb([id]); }); else cb(yeni);
   });
 }
-function yuklemeBagla(dugme, girdi, birak, cb) {
+function pdfSayfaSec(ids, sec) { // tek görsel isteyen yerler (Poster) için: hangi sayfa?
+  var m, izg = h("div", { style: "display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;max-width:560px;max-height:60vh;overflow:auto" });
+  ids.forEach(function (id, i) {
+    var r = IMG[id], k = h("button", { type: "button", style: "border:2px solid #cfd8dc;border-radius:8px;background:#fff;padding:4px;cursor:pointer;font:inherit", onclick: function () { m.remove(); sec(id); } });
+    var im = h("img", { src: r.img.src || "", alt: "" }); im.style.cssText = "width:100%;display:block"; k.appendChild(im); k.appendChild(h("div", { style: "font-size:12px", text: (i + 1) + ". sayfa" })); izg.appendChild(k);
+  });
+  m = modalAc("Hangi sayfa poster olsun?", [izg], []);
+}
+function yuklemeBagla(dugme, girdi, birak, cb, tekSayfa) {
   $(dugme).onclick = function () { $(girdi).click(); };
-  $(girdi).onchange = function (e) { var f = e.target.files; resimleriOku(f, cb); e.target.value = ""; };
+  $(girdi).onchange = function (e) { var f = Array.prototype.slice.call(e.target.files || []); resimleriOku(f, cb, tekSayfa); e.target.value = ""; };
   var b = $(birak); if (!b) return;
   ["dragenter", "dragover"].forEach(function (t) { b.addEventListener(t, function (e) { e.preventDefault(); b.classList.add("ustunde"); }); });
   ["dragleave", "drop"].forEach(function (t) { b.addEventListener(t, function (e) { e.preventDefault(); b.classList.remove("ustunde"); }); });
-  b.addEventListener("drop", function (e) { resimleriOku(e.dataTransfer.files, cb); });
+  b.addEventListener("drop", function (e) { resimleriOku(e.dataTransfer.files, cb, tekSayfa); });
 }
 var YAPISTIR = {};   // görünüm -> yapıştırılan resimleri işleyen fonksiyon
 
@@ -1639,7 +1687,7 @@ $("btnTemizle").onclick = function () {
     });
     if (sy.length > 40) on.appendChild(h("div", { class: "ipucu", text: "… ilk 40 sayfa gösteriliyor. Önizle / PDF bütün sayfaları içerir." }));
   }
-  function ekle(idler) { idler.forEach(function (id) { S.resim.liste.push({ id: id, adet: 1, rot: 0 }); }); durumKaydet(); ciz(); toast(idler.length + " resim eklendi.", "iyi"); }
+  function ekle(idler) { idler.forEach(function (id) { S.resim.liste.push({ id: id, adet: 1, rot: 0 }); }); durumKaydet(); ciz(); toast(idler.length + (idler.length > 1 && /sayfa \d+$/.test((IMG[idler[0]] || {}).ad || "") ? " PDF sayfası" : " resim") + " eklendi.", "iyi"); }
   yuklemeBagla("rsSec", "rsDosya", "rsBirak", ekle);
   YAPISTIR["v-resim"] = ekle;
   document.querySelectorAll("#rsModlar button").forEach(function (b) { b.onclick = function () { S.resim.mod = b.dataset.mod; durumKaydet(); ciz(); }; });
@@ -1877,7 +1925,7 @@ $("btnTemizle").onclick = function () {
     if (P().kesim === "sekil" && c.yollar.length === 0) $("poBilgi").appendChild(h("div", { class: "bilgi", text: "Şeklin çevresi bulunamadı. Beyazlık eşiğini değiştirin ya da düz dikdörtgen çerçeve seçin." }));
   }
   function ekle(idler) { S.poster.img = idler[0]; durumKaydet(); ciz(); toast("Görsel eklendi.", "iyi"); }
-  yuklemeBagla("poSec", "poDosya", "poBirak", ekle);
+  yuklemeBagla("poSec", "poDosya", "poBirak", ekle, true);
   YAPISTIR["v-poster"] = ekle;
   document.querySelectorAll("#poDuzen button").forEach(function (b) { b.onclick = function () { S.poster.duzen = b.dataset.v; durumKaydet(); ciz(); }; });
   [["poYon", "yon"], ["poKesim", "kesim"], ["poPay", "pay", 1], ["poEsik", "esik", 1], ["poBindirme", "bindirme", 1]].forEach(function (a) {
@@ -3689,7 +3737,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
     if (asistanBasla.oldu || !(window.claude && typeof window.claude.use === "function")) return;
     asistanBasla.oldu = true; CLAUDE_ORTAM = true; claudeOrtamAyarla();
     if (ASISTAN_YUZ) { var yz = $("asYuz"); yz.textContent = ""; yz.classList.add("resimli"); yz.appendChild(h("img", { src: ASISTAN_YUZ, alt: "" })); }
-    var kontrolGerek = false, resimVar = false;
+    var kontrolGerek = false, resimVar = false, resimSinir = 4;
     var kap = $("asistan"), giris = $("asGiris"), cevap = $("asCevap"), mik = $("asMik"), calisiyor = false, sample = null, dikte = null;
     /* v4.1 Asistan geçmişi: bu cihazda (localStorage) ve Claude hesabınızın özel alanında (db, data/users/<id>) saklanır; aynı hesapla açılan her cihazda görünür */
     var AS_ANAHTAR = "ogretmenYardimcisi_asistan", kayit = [], silindi = 0, asDoc = null, yaziyor = Promise.resolve(), baglamT = 0;
@@ -3731,7 +3779,7 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       var d = sn.data() || {}; if (+d.silindi > silindi) silindi = +d.silindi;
       kayit = kayitBirlestir(kayit, d.liste); kayitSakla(JSON.stringify(kayit) !== JSON.stringify(d.liste || [])); gecmisCiz(); // bu cihazda olup hesapta olmayan varsa hesaba yaz
     }).catch(function () {});
-    claude.use("sample").then(function (s) { sample = s; if (!s) return; kap.style.display = ""; $("asAlt").style.display = ""; s.limits().then(function (l) { resimVar = !!(l && l.images); }).catch(function () {}); });
+    claude.use("sample").then(function (s) { sample = s; if (!s) return; kap.style.display = ""; $("asAlt").style.display = ""; s.limits().then(function (l) { resimVar = !!(l && l.images); resimSinir = (l && l.images && +l.images.maxCount) || 4; }).catch(function () {}); });
     claude.use("dictation").then(function (d) { dikte = d; if (!d) return; mik.style.display = "";
       d.onPartial(function (o) { giris.value = (giris.dataset.taban || "") + o.text; });
       d.onFinal(function (o) { giris.dataset.taban = (giris.dataset.taban || "") + o.text + " "; giris.value = giris.dataset.taban; });
@@ -3946,14 +3994,17 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
           a.boya = JSON.parse(JSON.stringify(v.boya || [])); Object.assign(a, v.sayfa); a.kagit = v.kagit; a.arac = "sec"; sec([]); durumKaydet(); ciz(); kontrolGerek = true;
           return "açıldı: " + sb.ad;
         } },
-      { name: "postere_gonder", description: "Stüdyo'daki sayfayı Poster Yap'a gönderir; büyütüp A4'lere böler. duzen: 'SxS' sütun×satır, 1-5 arası her sayı olur: 1x2 = 2 A4, 2x2 = 4 A4, 2x3 = 6 A4, 3x3 = 9 A4, 3x4 = 12 A4, 4x4 = 16 A4; ya da A3 (tek A3). Program yönü kendisi seçer.",
-        inputSchema: { type: "object", properties: { duzen: { type: "string", description: "SxS (sütun x satır) ya da A3" } }, required: ["duzen"] },
+      { name: "postere_gonder", description: "Bir görseli Poster Yap'ta büyütüp A4'lere böler. duzen: 'SxS' sütun×satır (1-5): 1x1 = tek A4 (bölmeden), 1x2 = 2 A4, 2x2 = 4 A4, 2x3 = 6 A4, 3x3 = 9 A4, 3x4 = 12 A4, 4x4 = 16 A4; ya da A3 (tek A3). kaynak: 'studyo' (Stüdyo'daki sayfa, varsayılan), 'mevcut' (Poster'de yüklü görsel kalır, yalnız bölme değişir) ya da 'resim N' (Resim Yerleştirme listesindeki N. resim/PDF sayfası). Yönü program seçer.",
+        inputSchema: { type: "object", properties: { duzen: { type: "string", description: "SxS (sütun x satır), 1x1 ya da A3" }, kaynak: { type: "string" } }, required: ["duzen"] },
         execute: function (g) {
+          var kay = String(g.kaynak || "studyo").toLowerCase(), dz0 = String(g.duzen || "2x3").toLowerCase().replace(/[×*\s]/g, "x").replace(/x+/g, "x"); if (dz0 !== "a3" && !/^[1-5]x[1-5]$/.test(dz0)) dz0 = "2x3"; if (dz0 === "a3") dz0 = "A3";
+          if (kay === "mevcut") { if (!S.poster.img || !IMG[S.poster.img]) return "Poster'de yüklü görsel yok"; S.poster.duzen = dz0; durumKaydet(); gorunumAc("v-poster"); return "poster hazır: " + dz0; }
+          var rn = kay.match(/resim\s*(\d+)/); if (rn) { var it = S.resim.liste[+rn[1] - 1]; if (!it || !IMG[it.id]) return "Resim Yerleştirme listesinde " + rn[1] + ". resim yok (listede " + S.resim.liste.length + " resim var)"; S.poster.img = it.id; S.poster.duzen = dz0; durumKaydet(); gorunumAc("v-poster"); return "poster hazır: " + dz0 + " (" + IMG[it.id].ad + ")"; }
           var a = At(); if (!a.katmanlar.length) return "Stüdyo'da sayfa boş; önce sayfayı kur";
           var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI), es = [a.adSoyad, a.kenar]; a.adSoyad = false; a.kenar = false; // posterde ad-soyad satırı ve sayfa çerçevesi olmasın
           try { sayfaCiz(t.x, o.W, o.H, false); } finally { a.adSoyad = es[0]; a.kenar = es[1]; }
           var id = "r" + yeniId(); IMG[id] = { img: t.c, w: t.c.width, h: t.c.height, ad: "Stüdyo sayfası" };
-          var dz = String(g.duzen || "2x3").toLowerCase().replace(/[×*\s]/g, "x").replace(/x+/g, "x"); if (dz !== "a3" && !/^[1-5]x[1-5]$/.test(dz)) dz = "2x3"; if (dz === "1x1") dz = "A3"; if (dz === "a3") dz = "A3";
+          var dz = String(g.duzen || "2x3").toLowerCase().replace(/[×*\s]/g, "x").replace(/x+/g, "x"); if (dz !== "a3" && !/^[1-5]x[1-5]$/.test(dz)) dz = "2x3"; if (dz === "a3") dz = "A3";
           S.poster.img = id; S.poster.duzen = dz; durumKaydet(); gorunumAc("v-poster"); return "poster hazır: " + S.poster.duzen;
         } },
       { name: "serbest_kod", description: "Hazır araçların yetmediği HER işi yapar: programın içinde JavaScript çalıştırır (değişkenler ve yardımcılar talimattaki SERBEST KOD bölümünde). Kodun son satırında return ile kısa bir sonuç döndür. Önce otomatik yedek alınır; Geri Al ile geri dönülür.",
@@ -4000,7 +4051,8 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       "S (programın bütün verisi), UI.view (açık ekran), At() = S.atolye (Stüdyo sayfası: kagit a4d|a4y|a3d|a3y, baslik, adSoyad, kenar, zemin, zemin2, katmanlar[], boya[]). " +
       "Katman türleri (ölçüler mm, x,y ORTA nokta, A4 dikey 210x297): yazi {tip:'yazi', metin, x, y, boy, renk, font, mod:'renkli'|'cizgi'|'kesik', hiza:'orta'|'sol'|'sag', dolgu:'gokkusagi'?, kenarK, kenarR, don}; " +
       "sekil {tip:'sekil', sekil, x, y, w, h, dolgu, kenarR, kenarK, kenarStil:'duz'|'kesik'|'nokta', kose, don}; cizim (kütüphane resmi) {tip:'cizim', ad: KUT anahtarı, x, y, w, h, mod:'renkli'|'cizgi'|'kesik'}. Eklemek: katmanEkle(nesne, true). sayfa(At(), {kagit, adSoyad, kenar, zemin}) sayfa ayarı; BASLIK(metin, y, boy) gökkuşağı başlık; robotCiz(x, y, ölçek) şekillerden robot. " +
-      "Diğer bölümler ve S anahtarları: v-calisma S.calisma, v-boyama S.boyama, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
+      "Resim Yerleştirme (v-resim) S.resim: liste [{id (IMG anahtarı), adet, rot}] (yüklenen resimler ve PDF sayfaları sırayla; IMG[id] = {img, w, h, ad}), secili [id], mod 'izgara'|'boyut', satir, sutun (sayfa başına satir×sutun resim), sigdir 'contain'|'cover', doldur (sayfayı aynı resimle doldur), hedef 'A4'|'A5'|'A6'|'13x18'|'10x15'|'9x13'|'ozel' (mod 'boyut' iken), ozelG, ozelY (cm), tam, kagit 'A4'|'A5'|'A3', yon 'oto'|'portrait'|'landscape', kenar, aralik (mm), dondur, kesim, cerceve (true/false). Sıralamak/silmek için liste dizisini değiştir. Resmi boyamaya: S.boyama.img = S.resim.liste[i].id; gorunumAc('v-boyama'). Resmi Stüdyo'ya fotoğraf olarak: katmanEkle({tip:'foto', img:id, x, y, w, h (mm), don:0, kirp:'yok', yak:1, kx:0, ky:0, parlak:100, kontrast:100, doygun:100, gri:false, cizgi:false, arkaSil:0, kenar:false}, true). " +
+      "Diğer bölümler ve S anahtarları: v-calisma S.calisma, v-boyama S.boyama {img, baslik, hassas, kalin, adSoyad}, v-resim S.resim, v-poster S.poster {img, duzen 'SxS'|'1x1'|'A3', yon 'oto'|'dikey'|'yatay', pay, makas, etiket, bindirme}, v-ayarlar S.ayar, v-konular. Ekranı açmak: gorunumAc('v-…'). " +
       "Baskı/PDF: var o = sayfaOlcu(), t = tuvalYap(o.W, o.H, DPI); sayfaCiz(t.x, o.W, o.H, false); sonra yazdirSayfalar([{tur:'tuval', tuval:t.c, w:o.W, h:o.H}]) ya da pdfIndirSayfalar(aynısı). Hazır sayfa tuvali: knTuval(knSablon(KONULAR[i], KN_SAYFA[j])). " +
       "YASAK: S.*.gecmis, S.banka, S.yapilan ve S.ayar'ı silmek; localStorage'ı temizlemek; sınıf listesini (çocuk adları) okumak ya da cevaba yazmak. Kod bitince program kendisi kaydeder ve yeniden çizer.";
     function talimat() {
@@ -4011,7 +4063,23 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
         "SIRA: 1) Konuya uyan hazır sayfa varsa hazir_sayfa. 2) Uyan şablon varsa sablon_ac (ör. robot için robotBuyuk; boyama için boyama şablonu RESIM=kütüphane resmi). 3) Resim kütüphanede yoksa resim_uret. 4) Diğer her şey için sayfa_kur. " +
         "Kütüphanede olmayan bir nesneyi (robot, ev, araba…) basit şekillerden kendin ÇİZMEYE çalışma; şablon yoksa en yakın kütüphane resmini kullan ve bunu söyle. sayfa_kur'da 4-6 yaş için: büyük tek resim ya da en çok 4-6 büyük öğe, az ve büyük yazı, başlık üstte; öğeler sayfa içinde (x 15-195, y 40-280 A4 dikey) ve birbirinin üstüne binmesin; boyama için resim gorunum 'cizgi'. " +
         "İstenen resim kütüphanede YOKSA (ör. kaplan, araba, zürafa) hiç sormadan resim_uret ile ÜRET: renkli istenirse tur renkli (3D), boyama sayfası istenirse tur boyama. Asla 'yapamıyorum' ya da 'şablon yok' deme; şekillerle kendi kafandan resim de çizme. Resim üretme hakkı sınırlı: gereksiz yere üretme, kütüphanede varsa onu kullan. Bir resmin hem renkli hem boyama hali istenirse iki kez üret. Poster istenirse önce sayfayı (şablon, hazır sayfa ya da resim_uret ile yeni_sayfa) Stüdyo'da kur, sonra postere_gonder (kaç A4 istenirse: 2 A4 = 1x2, 4 A4 = 2x2, 6 A4 = 2x3, 8 A4 = 2x4, 9 A4 = 3x3, 12 A4 = 3x4, 16 A4 = 4x4). Kullanıcı bir sayı söylediyse o kadar A4 yap; 'yok' deme. Var olan sayfada değişiklik istenirse önce sayfayi_oku, sonra oge_degistir. " +
-        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "ÇOCUK ADLARI: Öğretmen 'her çocuğa adıyla', 'çocukların adlarıyla', 'isim kartı' gibi bir şey isterse adın geleceği yazıya tam olarak ÇOCUĞUN ADI yaz (büyük harf, tek yazı öğesi); gerçek adları program cihazdaki sınıf listesinden doldurur ve her çocuk için ayrı sayfa basar. Gerçek çocuk adı isteme, sorma, yazma; öğretmene 'Yazdır/PDF her çocuk için ayrı sayfa çıkarır; adlar Ayarlar → Sınıf listesi'nde' de. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+        katalog() + "\n" + SERBEST_DOKUMAN + "\n" + "RESİM ÜRETİRKEN: Peygamberlerin, sahabenin, meleklerin ve Allah'ın resmini ASLA üretme ya da çizdirme; istenirse nazikçe 'dinimizde peygamberlerin resmi yapılmaz' de ve yerine cami, Kâbe, hilal, Kur'an, gül, hurma ağacı gibi bir resim öner. Gerçek kişi, ünlü ya da çizgi film/dizi karakteri (ör. Pepe, Elsa, Örümcek Adam) çizdirme; benzeri özgün bir karakter üret. Resimlerde yazı istenirse yazıyı resme değil sayfaya ayrı yazı olarak ekle (yapay zekâ yazıyı bozar). Arapça yazı (Allah lafzı, Besmele, ayet, dua) ASLA resme yazdırma, yapay zekâ Arapçayı bozar: resimde 'no text, no letters' iste, Arapçayı sayfaya amiri ya da baloo yazı tipiyle ayrı yaz. Namaz, abdest gibi dinî hareketleri çizdirirken tarifi sade ve doğru yaz (ör. 'a little boy praying, standing with hands folded on his belly, modest clothes'); kız çocukları başörtülü ve kapalı giysili olsun. " + "YÜKLENEN RESİM/PDF: Öğretmen Resim Yerleştirme, Poster ya da Resimden Boyama'ya resim veya PDF yüklediyse o ekrandayken sana küçük resimleri sırayla EKTE gelir (PDF'in her sayfası ayrı resimdir); içine bakıp 'kedili olanı', '3. sayfayı' gibi istekleri yap. Hazır araç yoksa serbest_kod ile S.resim / S.poster / S.boyama üzerinde çalış; poster için postere_gonder kaynak 'resim N' ya da 'mevcut'. " + "ÇOCUK ADLARI: Öğretmen 'her çocuğa adıyla', 'çocukların adlarıyla', 'isim kartı' gibi bir şey isterse adın geleceği yazıya tam olarak ÇOCUĞUN ADI yaz (büyük harf, tek yazı öğesi); gerçek adları program cihazdaki sınıf listesinden doldurur ve her çocuk için ayrı sayfa basar. Gerçek çocuk adı isteme, sorma, yazma; öğretmene 'Yazdır/PDF her çocuk için ayrı sayfa çıkarır; adlar Ayarlar → Sınıf listesi'nde' de. " + "Dinî bilgileri doğru ve sade ver; emin olmadığın ayet, hadis ya da tarih yazma. Gerçek kişi adı ekleme. Programda olmayan bir şey istenirse (yazdırma ayarı, internet) nazikçe söyle. Şu an açık ekran: " + (UI.view === "v-atolye" ? "Etkinlik Stüdyosu" : UI.view === "v-konular" ? "Konular" : UI.view) + ".";
+    }
+    function kucukResim(kaynak, uzun) { // IMG kaynağından küçük JPEG (Asistan'ın görmesi için)
+      return new Promise(function (ok) {
+        try { var w = kaynak.naturalWidth || kaynak.width, hh = kaynak.naturalHeight || kaynak.height, k = Math.min(1, (uzun || 640) / Math.max(w, hh)), c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(hh * k)); var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(kaynak, 0, 0, c.width, c.height);
+          c.toBlob(function (b) { ok(b); }, "image/jpeg", 0.8); } catch (e) { ok(null); }
+      });
+    }
+    function ekResimler() { // açık ekrandaki yüklenmiş resimler (v4.5): Asistan içlerini görsün
+      if (!resimVar) return Promise.resolve({ blobs: [], not: "" });
+      var v = UI.view, idler = [], not = "";
+      if (v === "v-resim") { idler = S.resim.liste.slice(0, resimSinir).map(function (r) { return r.id; }); if (idler.length) not = "Ekteki " + idler.length + " resim, Resim Yerleştirme listesindeki ilk " + idler.length + " resim (sırayla 1., 2. …; listede toplam " + S.resim.liste.length + " resim var): " + idler.map(function (id, i) { return (i + 1) + ") " + ((IMG[id] || {}).ad || "resim"); }).join(", ") + "."; }
+      else if (v === "v-poster" && S.poster.img) { idler = [S.poster.img]; not = "Ekteki resim, Poster Yap'ta yüklü görsel (" + ((IMG[S.poster.img] || {}).ad || "") + ")."; }
+      else if (v === "v-boyama" && S.boyama.img) { idler = [S.boyama.img]; not = "Ekteki resim, Resimden Boyama'ya yüklenen resim."; }
+      idler = idler.filter(function (id) { return IMG[id] && IMG[id].img; });
+      return Promise.all(idler.map(function (id) { return kucukResim(IMG[id].img, 640); })).then(function (b) { return { blobs: b.filter(Boolean), not: not }; });
     }
     function sor() {
       var q = giris.value.trim(); if (!q || calisiyor || !sample) return;
@@ -4021,7 +4089,11 @@ function seritKivrim(L) { var p = new Path2D(); p.addPath(new Path2D("M14 72L18 
       bag.forEach(function (k) { mesajlar.push({ role: "user", content: "İstek: " + k.q }, { role: "assistant", content: String(k.a || "Tamam.") }); });
       mesajlar.push({ role: "user", content: "İstek: " + q });
       mesajlar[0] = { role: "user", content: talimat() + "\n\n" + (bag.length ? "(Aşağıda öğretmenle önceki konuşmalarınız var; 'onu', 'aynısını', 'az önceki', 'dünkü' derse bunlara bak.)\n\n" : "") + mesajlar[0].content };
-      sample(mesajlar, { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }).then(function (r) {
+      ekResimler().then(function (ek) {
+        if (ek.blobs.length) mesajlar[mesajlar.length - 1] = { role: "user", content: mesajlar[mesajlar.length - 1].content + "\n\n(" + ek.not + ")" };
+        var se = { tools: ARACLAR_AS, modelTier: "default", cache: false, onText: function (o) { if (o.text) cevap.textContent = o.text; } }; if (ek.blobs.length) se.images = ek.blobs;
+        return sample(mesajlar, se);
+      }).then(function (r) {
         var t = (r && r.text) || "Tamam."; cevap.textContent = t; kayit.push({ t: Date.now(), q: q, a: String(t).slice(0, 600) + (sonVideo ? "\n🎬 " + sonVideo : "") }); sonVideo = ""; kayit = kayit.slice(-40); kayitSakla(true); gecmisCiz(); giris.value = ""; giris.dataset.taban = "";
         if (kontrolGerek && resimVar && UI.view === "v-atolye") return gozdenGecir(q, t);
       }).catch(function (e) {
@@ -5161,6 +5233,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v4.5", "PDF desteği ve Asistan'ın gözü: Resim Yerleştirme'de 'Resim / PDF Seç' (PDF'in her sayfası ayrı resim olur) ve Poster Yap'ta 'Görsel / PDF Seç' (çok sayfalı PDF'te hangi sayfanın poster olacağını seçersiniz). PDF bilgisayarınızda/telefonunuzda açılır, dışarı gitmez (ilk kullanımda PDF okuyucunun kodu internetten iner). Poster Yap'a 'Tek A4 (bölmeden)' eklendi. Asistan artık bu ekranlarda yüklediğiniz resimlerin içini görüyor: 'kedili olanı 4 A4 poster yap', 'PDF'in 3. sayfasını boyamaya çevir', 'ikinci resmi sil' gibi istekleri yapar."],
   ["v4.4", "Asistan'ın resmi değişti: konuşma balonu içinde sevimli robot."],
   ["v4.3", "Telefonda Claude sayfasında daha çok yer: Claude'un kendi üst çubuğu (yorum ve Sohbet et düğmeleri) kaldırılamadığı için programın mavi başlığı telefonda gizlendi; menü (☰) sağ üstte küçük düğme oldu."],
   ["v4.2", "1) Sınıf listesi: Ayarlar'a çocukların adlarını yazın (yalnız bu cihazda kalır, Asistan'a ve hiçbir yere gitmez). Stüdyo'da bir yazıya ÇOCUĞUN ADI yazınca (ya da Asistan'a \"her çocuğa adıyla … yap\" deyince) Yazdır/PDF her çocuk için ayrı sayfa çıkarır. 2) Kısa video: Asistan'a \"kaplumbağa el sallasın, 3 saniyelik video yap\" deyin; Hugging Face önce resmi çizer, sonra canlandırır (1-3 dk). Video yeni sekmede açılır, oradan indirilir; bağlantı birkaç saat geçerli. Ücretsiz süre günde birkaç videoya yeter."],
