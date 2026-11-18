@@ -60,6 +60,13 @@ header.topbar{position:fixed;left:0;right:0;top:0;height:var(--ustYuk);backgroun
 .agac{position:fixed;left:0;top:var(--ustYuk);bottom:0;width:var(--agacGen);overflow:auto;background:#fff;border-right:1px solid var(--line);
   box-shadow:2px 0 6px rgba(0,0,0,.07);z-index:40;padding:10px 8px 18px 10px;font-size:13px;color:#274b4b}
 .agac ul{list-style:none;margin:0;padding:0}
+.agac{display:flex;flex-direction:column}.agac>*{flex-shrink:0}
+.ag-telif{margin-top:auto;padding-top:18px}
+.ag-telif>div{background:#f1f5f9;border-radius:10px;padding:12px 10px;text-align:center;line-height:1.45}
+.ag-telif .t1{font-size:12.5px;color:#1f2937}.ag-telif .t1 b{font-weight:800;color:#111827}
+.ag-telif .t2{font-size:11px;color:#6b7280;margin-top:4px}
+.ag-telif .t3{font-size:11.5px;color:#1a5fb4;margin-top:6px}
+html.agac-dar .ag-telif{display:none}
 .agac li{position:relative;padding-left:18px}
 .agac li::before{content:"";position:absolute;left:6px;top:0;bottom:0;border-left:1px dotted #8a9a96}
 .agac li:last-child::before{bottom:auto;height:14px}
@@ -502,6 +509,11 @@ table.tb td.ort,table.tb th.ort{text-align:center}
     </li>
   </ul>
   <input type="file" id="yedekDosya" accept=".json" class="gizli">
+  <div class="ag-telif"><div>
+    <div class="t1">© 2026 — Bu programın telif hakları <b>Abdullah GEDİK</b>'e aittir.</div>
+    <div class="t2">İzinsiz çoğaltılamaz, satılamaz; yapımcı bilgisi silinerek başkasına mal edilemez.</div>
+    <div class="t3" id="agTelifSurum"></div>
+  </div></div>
 </nav>
 
 <main><div id="zoomKap">
@@ -922,7 +934,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v5.6";
+var SURUM = "v5.7", SURUM_TARIH = "19/11/2026";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -1474,6 +1486,7 @@ function aktifCiz(geriden) {
 function basBilgi() {
   $("basKurum").textContent = S.ayar.kurum || "";
   $("basSurum").textContent = "sürüm " + SURUM;
+  $("agTelifSurum").textContent = "Sürüm " + SURUM.replace(/^v/, "V") + " — " + SURUM_TARIH;
   $("telif").textContent = "Öğretmen Yardımcısı · 4-6 Yaş · sürüm " + SURUM + " · Bilgiler bu tarayıcıda (Drive bağlıysa Drive dosyasında da) saklanır.";
 }
 document.addEventListener("click", function () { document.querySelectorAll(".ciktiMenu.acik").forEach(function (x) { x.classList.remove("acik"); }); });
@@ -5736,6 +5749,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v5.7", "Menünün en altına telif kartı eklendi (© 2026 Abdullah GEDİK; sürüm ve tarih)."],
   ["v5.6", "Asistan'daki 'at most 16 tools per call' hatası düzeltildi: Claude bir istekte en çok 16 araç kabul ediyor; Asistan'ın araçları birleştirildi, her ekranda bütün işleri yine yapar."],
   ["v5.5", "Asistan artık hangi ekrandaysanız o ekranda çalışır: Konular'da 'boyama sayfasını aç' deyince sayfa büyük açılır (sonraki/önceki de olur); Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme ve Poster'in bütün ayarlarını kendisi yapar; 'önizle', 'yazdır', 'PDF yap' deyince açık ekranın çıktısını hazırlar; ekrandaki her düğmeye ve kutuya adıyla basabilir. Konular'da büyük açık etkinlik varken Çıktı menüsü yalnız o sayfayı verir."],
   ["v5.4", "Etkinlik Stüdyosu (Fotoğraf) ve Resimden Boyama'ya da 'Resim / PDF Seç' geldi: Stüdyo'da PDF'in her sayfası ayrı fotoğraf olarak eklenir; Boyama'da çok sayfalı PDF'te hangi sayfanın boyamaya çevrileceğini seçersiniz."],
