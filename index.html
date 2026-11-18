@@ -922,7 +922,7 @@ table.tb td.ort,table.tb th.ort{text-align:center}
    KilavuzModulu .......... kullanma kılavuzu ve sürüm notları
    ===================================================================== */
 "use strict";
-var SURUM = "v5.5";
+var SURUM = "v5.6";
 var $ = function (id) { return document.getElementById(id); };
 var MM = 96 / 25.4;
 function h(tag, at, ic) {
@@ -5736,6 +5736,7 @@ function ozelSekil(x, t, cx, cy, r, mod, lw) {
 
 /* =================== KilavuzModulu =================== */
 var SURUM_NOTLARI = [
+  ["v5.6", "Asistan'daki 'at most 16 tools per call' hatası düzeltildi: Claude bir istekte en çok 16 araç kabul ediyor; Asistan'ın araçları birleştirildi, her ekranda bütün işleri yine yapar."],
   ["v5.5", "Asistan artık hangi ekrandaysanız o ekranda çalışır: Konular'da 'boyama sayfasını aç' deyince sayfa büyük açılır (sonraki/önceki de olur); Çalışma Sayfaları, Resimden Boyama, Resim Yerleştirme ve Poster'in bütün ayarlarını kendisi yapar; 'önizle', 'yazdır', 'PDF yap' deyince açık ekranın çıktısını hazırlar; ekrandaki her düğmeye ve kutuya adıyla basabilir. Konular'da büyük açık etkinlik varken Çıktı menüsü yalnız o sayfayı verir."],
   ["v5.4", "Etkinlik Stüdyosu (Fotoğraf) ve Resimden Boyama'ya da 'Resim / PDF Seç' geldi: Stüdyo'da PDF'in her sayfası ayrı fotoğraf olarak eklenir; Boyama'da çok sayfalı PDF'te hangi sayfanın boyamaya çevrileceğini seçersiniz."],
   ["v5.3", "Konular'da bir etkinliğin resmine (ya da adına) tıklayınca etkinlik büyük açılıyor: ← Geri ile listeye dönülür, ‹ Önceki / Sonraki › ile diğer etkinliklere geçilir; Yazdır, PDF, Düzenle de orada. Her bölümün başlığında ← Geri düğmesi: bir önceki açtığınız ekrana döner (ör. Düzenle ile Stüdyo'ya geçtiyseniz Konular'a geri)."],
